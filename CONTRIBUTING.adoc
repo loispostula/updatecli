@@ -79,7 +79,7 @@ The execution log is written by Venom into `./e2e/venom.log`.
 
 The manifests exercised by these suites live in `e2e/updatecli.d/`, grouped by expected outcome:
 `success.d` (must produce no warning and no error), `warning.d`,
-`deprecated.d` (reserved for deprecations introduced after v1),
+`deprecated.d` (supported settings that emit deprecation warnings),
 `removed.d` (removed settings that must fail), and `skipped.targets.d`.
 The corresponding Venom suites live in `e2e/venom.d/`.
 

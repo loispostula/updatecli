@@ -22,8 +22,8 @@ var (
 Updatecli schema, such as a misspelled one, which Updatecli would otherwise silently
 ignore.
 
-Removed keywords are errors. A key Updatecli cannot check reliably is reported as a
-warning and does not fail the command unless '--strict' is specified.`,
+Deprecated keywords still supported by Updatecli are warnings. Removed keywords
+are errors. Warnings fail the command when '--strict' is specified.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			// TODO: To be removed once not experimental anymore
 			if !cmdoptions.Experimental {

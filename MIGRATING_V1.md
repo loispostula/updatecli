@@ -14,6 +14,8 @@ go build -o ./bin/updatecli ./main.go
 ```
 
 Review the diff before running `pipeline apply`. Removed settings fail validation.
+Deprecation warnings remain supported for future changes; v1 resets the existing
+deprecations.
 Release builds obtain their version from the tag; this build has no release version.
 
 ## Removed interfaces

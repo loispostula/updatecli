@@ -145,7 +145,7 @@ func TestValidateSchema(t *testing.T) {
 				`,
 		},
 		{
-			name: "a deprecated key",
+			name: "a removed key",
 			manifest: `
 				name: a manifest
 				sources:
@@ -163,7 +163,7 @@ func TestValidateSchema(t *testing.T) {
 			expectedErrors: []string{`unknown key "scmID"`},
 		},
 		{
-			name: "a deprecated key reported as an error when strict",
+			name: "a removed key reported as an error when strict",
 			manifest: `
 				name: a manifest
 				sources:
