@@ -5,13 +5,13 @@ vars:
     warning: 'WARNING:'
     error: 'ERROR:'
 testcases:
-  - name: "Test updatecli reporting a deprecated keyword without failing"
+  - name: "Test updatecli accepting supported manifest settings"
     steps:
       - script: '../scripts/test_manifest_validate.bash'
         type: 'exec'
         assertions:
           - 'result.code ShouldEqual 0'
-          - 'result.systemout ShouldContainSubstring "is deprecated in favor of"'
+          - 'result.systemout ShouldNotContainSubstring "ERROR:"'
 
   - name: "Test updatecli rejecting a manifest that does not match the schema"
     steps:

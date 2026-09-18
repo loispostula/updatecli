@@ -3,7 +3,7 @@ name: 'Updatecli Removed Interfaces TestSuite'
 testcases:
   - name: "Removed commands and manifest settings fail with migration guidance"
     steps:
-      - script: '../scripts/test_deprecated.bash'
+      - script: '../scripts/test_removed.bash'
         type: 'exec'
         assertions:
           - 'result.code ShouldEqual 0'

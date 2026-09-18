@@ -16,7 +16,7 @@ done
 
 for manifest in githubPullrequest.yaml json.yaml transformers.yaml; do
   if output=$("$VENOM_VAR_binpath/updatecli" --disable-version-check pipeline diff \
-    --config "e2e/updatecli.d/deprecated.d/$manifest" 2>&1); then
+    --config "e2e/updatecli.d/removed.d/$manifest" 2>&1); then
     printf 'Removed manifest setting unexpectedly succeeded: %s\n' "$manifest"
     exit 1
   fi

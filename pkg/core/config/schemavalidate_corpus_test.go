@@ -40,7 +40,7 @@ func corpusManifests(t *testing.T) []string {
 			// The manifests under "invalid.d" deliberately break the schema, they are the
 			// fixtures checking that 'updatecli manifest validate' rejects a bad manifest.
 			if entry.IsDir() {
-				if entry.Name() == invalidManifestDir || entry.Name() == "deprecated.d" {
+				if entry.Name() == invalidManifestDir || entry.Name() == "removed.d" {
 					return filepath.SkipDir
 				}
 				return nil
@@ -141,7 +141,7 @@ func TestCorpusValidatesWithoutError(t *testing.T) {
 func TestCorpusRejectsRemovedSettings(t *testing.T) {
 	for _, name := range []string{"githubPullrequest.yaml", "json.yaml", "transformers.yaml"} {
 		t.Run(name, func(t *testing.T) {
-			content, err := os.ReadFile(filepath.Join("..", "..", "..", "e2e", "updatecli.d", "deprecated.d", name))
+			content, err := os.ReadFile(filepath.Join("..", "..", "..", "e2e", "updatecli.d", "removed.d", name))
 			require.NoError(t, err)
 			var specs []Spec
 			require.ErrorContains(t, unmarshalConfigSpec(content, &specs), "removed in v1")
