@@ -61,11 +61,6 @@ type Commit struct {
 	//
 	Title string `yaml:"-"`
 	//
-	//  DeprecatedTitle is deprecated and will be ignored.
-	//  The commit title is now always generated from the target name or description.
-	//
-	DeprecatedTitle string `yaml:"title,omitempty"`
-	//
 	//  body defines the commit body of the commit message as defined by the
 	//  conventional commit specification. More information on
 	//  -> https://www.conventionalcommits.org/en/
@@ -197,12 +192,6 @@ Validate validates "conventional commit" default parameters.
 func (c *Commit) Validate() error {
 	if len(c.Type) == 0 {
 		c.Type = "chore"
-	}
-
-	// Warn if deprecated Title field is used
-	if len(c.DeprecatedTitle) > 0 {
-		logrus.Warningf("commitMessage.title is deprecated and will be ignored. The commit title is now always generated from the target name or description.")
-		c.DeprecatedTitle = ""
 	}
 
 	return nil

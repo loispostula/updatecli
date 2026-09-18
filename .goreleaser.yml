@@ -1,5 +1,8 @@
 ---
 version: 2
+release:
+  prerelease: auto
+  make_latest: "{{ if .Prerelease }}false{{ else }}true{{ end }}"
 archives:
   - name_template: >-
       {{ .ProjectName }}_
@@ -17,7 +20,8 @@ archives:
       - manpages/*
 
 aurs:
-  - homepage: https://www.updatecli.io
+  - skip_upload: auto
+    homepage: https://www.updatecli.io
     description: "A declarative update policy engine."
     maintainers:
       - "Olivier Vernin <olivier at vernin dot me>"
@@ -46,6 +50,7 @@ before:
 
 brews:
   - name: updatecli
+    skip_upload: auto
     directory: Formula
     repository:
       owner: updatecli
@@ -196,10 +201,12 @@ docker_manifests:
       - "ghcr.io/updatecli/updatecli:{{ .Tag }}-amd64"
       - "ghcr.io/updatecli/updatecli:{{ .Tag }}-arm64"
   - name_template: "updatecli/updatecli:latest"
+    skip_push: auto
     image_templates:
       - "updatecli/updatecli:{{ .Tag }}-amd64"
       - "updatecli/updatecli:{{ .Tag }}-arm64"
   - name_template: "ghcr.io/updatecli/updatecli:latest"
+    skip_push: auto
     image_templates:
       - "ghcr.io/updatecli/updatecli:{{ .Tag }}-amd64"
       - "ghcr.io/updatecli/updatecli:{{ .Tag }}-arm64"
@@ -215,10 +222,12 @@ docker_manifests:
       - "ghcr.io/updatecli/updatecli:{{ .Tag }}-slim-amd64"
       - "ghcr.io/updatecli/updatecli:{{ .Tag }}-slim-arm64"
   - name_template: "updatecli/updatecli:latest-slim"
+    skip_push: auto
     image_templates:
       - "updatecli/updatecli:{{ .Tag }}-slim-amd64"
       - "updatecli/updatecli:{{ .Tag }}-slim-arm64"
   - name_template: "ghcr.io/updatecli/updatecli:latest-slim"
+    skip_push: auto
     image_templates:
       - "ghcr.io/updatecli/updatecli:{{ .Tag }}-slim-amd64"
       - "ghcr.io/updatecli/updatecli:{{ .Tag }}-slim-arm64"
@@ -281,6 +290,7 @@ signs:
       - "${artifact}"
 
 announce:
+  skip: "{{ if .Prerelease }}true{{ else }}false{{ end }}"
   bluesky:
     enabled: true
     username: "bsky@updatecli.io"

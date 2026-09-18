@@ -182,9 +182,7 @@ func (p *Pipeline) RunActions(ctx context.Context) error {
 		}
 
 		pipelineName := p.Config.Spec.Name
-		if pipelineName == "" && p.Config.Spec.Title != "" {
-			pipelineName = p.Config.Spec.Name
-		} else if pipelineName == "" && p.Name != "" {
+		if pipelineName == "" && p.Name != "" {
 			pipelineName = p.Name
 		}
 
@@ -335,12 +333,6 @@ func (p *Pipeline) detectActionTitle(action *action.Action) {
 
 	if p.Config.Spec.Name != "" {
 		action.Title = p.Config.Spec.Name
-		return
-	}
-
-	// Title is deprecated and should be removed in the future
-	if p.Config.Spec.Title != "" {
-		action.Title = p.Config.Spec.Title
 		return
 	}
 

@@ -24,7 +24,7 @@ type pathElement struct {
 	isKey bool
 }
 
-// splitYamlPathKey splits a sanitized yaml key (see sanitizeYamlPathKey) into its
+// splitYamlPathKey splits a JSONPath key into its
 // successive elements. It mirrors the grammar implemented by goccy's PathString so
 // that a prefix rebuilt from these elements is always a path goccy can parse.
 func splitYamlPathKey(key string) ([]pathElement, error) {

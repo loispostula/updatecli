@@ -28,8 +28,8 @@ func TestSource(t *testing.T) {
 			name: "Get last array item successful workflow",
 			spec: Spec{
 				File:   "testdata/data.json",
-				Key:    ".phoneNumbers.all().filter(equal(type,office)).number",
-				Engine: strPtr(ENGINEDASEL_V2),
+				Key:    "phoneNumbers.filter(type == \"office\").map(number)...",
+				Engine: strPtr(ENGINEDASEL_V3),
 			},
 			expectedResult: "646 555-4567",
 		},
@@ -37,7 +37,7 @@ func TestSource(t *testing.T) {
 			name: "Default successful workflow",
 			spec: Spec{
 				File: "testdata/data.json",
-				Key:  ".firstName",
+				Key:  "firstName",
 			},
 			expectedResult: "Jack",
 		},
@@ -45,8 +45,8 @@ func TestSource(t *testing.T) {
 			name: "Default successful workflow",
 			spec: Spec{
 				File:   "testdata/data.json",
-				Key:    ".firstName",
-				Engine: strPtr(ENGINEDASEL_V2),
+				Key:    "firstName",
+				Engine: strPtr(ENGINEDASEL_V3),
 			},
 			expectedResult: "Jack",
 		},
@@ -54,8 +54,8 @@ func TestSource(t *testing.T) {
 			name: "Get last array item successful workflow",
 			spec: Spec{
 				File:   "testdata/data.json",
-				Key:    ".phoneNumbers.last().type",
-				Engine: strPtr(ENGINEDASEL_V2),
+				Key:    "phoneNumbers.last().type",
+				Engine: strPtr(ENGINEDASEL_V3),
 			},
 			expectedResult: "office",
 		},
@@ -63,7 +63,7 @@ func TestSource(t *testing.T) {
 			name: "Default successful workflow with empty result",
 			spec: Spec{
 				File: "testdata/data.json",
-				Key:  ".surname",
+				Key:  "surname",
 			},
 			expectedResult: "",
 		},
@@ -71,8 +71,8 @@ func TestSource(t *testing.T) {
 			name: "Default successful workflow with empty result",
 			spec: Spec{
 				File:   "testdata/data.json",
-				Key:    ".surname",
-				Engine: strPtr(ENGINEDASEL_V2),
+				Key:    "surname",
+				Engine: strPtr(ENGINEDASEL_V3),
 			},
 			expectedResult: "",
 		},
@@ -80,48 +80,48 @@ func TestSource(t *testing.T) {
 			name: "Test key do not exist",
 			spec: Spec{
 				File:  "testdata/data.json",
-				Key:   ".doNotExist",
+				Key:   "doNotExist",
 				Value: "",
 			},
 			wantErr:          true,
-			expectedErrorMsg: errors.New("✗ cannot find value for path \".doNotExist\" from file \"testdata/data.json\""),
+			expectedErrorMsg: errors.New("✗ cannot find value for path \"doNotExist\" from file \"testdata/data.json\""),
 			expectedResult:   "",
 		},
 		{
-			name: "Test key do not exist with Dasel v2",
+			name: "Test key do not exist with Dasel v3",
 			spec: Spec{
 				File:   "testdata/data.json",
-				Key:    ".doNotExist",
+				Key:    "doNotExist",
 				Value:  "",
-				Engine: strPtr(ENGINEDASEL_V2),
+				Engine: strPtr(ENGINEDASEL_V3),
 			},
 			wantErr:          true,
-			expectedErrorMsg: errors.New("✗ cannot find value for path \".doNotExist\" from file \"testdata/data.json\""),
+			expectedErrorMsg: errors.New("✗ cannot find value for path \"doNotExist\" from file \"testdata/data.json\""),
 			expectedResult:   "",
 		},
 		{
 			name: "Test array exist",
 			spec: Spec{
 				File: "testdata/data.json",
-				Key:  ".children.[1]",
+				Key:  "children[1]",
 			},
 			expectedResult: "Thomas",
 		},
 		{
-			name: "Test array exist with Dasel v2",
+			name: "Test array exist with Dasel v3",
 			spec: Spec{
 				File:   "testdata/data.json",
-				Key:    ".children.[1]",
-				Engine: strPtr(ENGINEDASEL_V2),
+				Key:    "children[1]",
+				Engine: strPtr(ENGINEDASEL_V3),
 			},
 			expectedResult: "Thomas",
 		},
 		{
-			name: "Version filter with Dasel v2",
+			name: "Version filter with Dasel v3",
 			spec: Spec{
 				File:   "testdata/data.json",
-				Key:    ".children.all()",
-				Engine: strPtr(ENGINEDASEL_V2),
+				Key:    "children...",
+				Engine: strPtr(ENGINEDASEL_V3),
 				VersionFilter: version.Filter{
 					Kind: "latest",
 				},
@@ -219,7 +219,7 @@ func TestSource(t *testing.T) {
 			err = j.Source(context.Background(), "", &gotResult)
 
 			if tt.wantErr {
-				assert.Equal(t, tt.expectedErrorMsg.Error(), err.Error())
+				require.ErrorContains(t, err, tt.expectedErrorMsg.Error())
 			} else {
 				require.NoError(t, err)
 			}

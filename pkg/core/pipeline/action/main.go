@@ -61,8 +61,6 @@ type Config struct {
 	Spec interface{} `yaml:",omitempty"`
 	// scmid references a scm configuration defined within the updatecli manifest
 	ScmID string `yaml:",omitempty"`
-	// !Deprecated in favor of `scmid`
-	DeprecatedScmID string `yaml:"scmID,omitempty" jsonschema:"-"`
 	/*
 		pipelineurl defines if a link to the Updatecli pipeline CI job should be added to the report.
 
@@ -99,30 +97,11 @@ func (c *Config) Validate() (err error) {
 
 	// Ensure kind is lowercase
 	if c.Kind != strings.ToLower(c.Kind) {
-		logrus.Warningf("kind value %q must be lowercase", c.Kind)
-		c.Kind = strings.ToLower(c.Kind)
+		return fmt.Errorf("kind value %q must be lowercase", c.Kind)
 	}
 
-	/** Deprecated items **/
-	if c.Kind == githubIdentifier {
-		logrus.Warnf("The kind %q for actions is deprecated in favor of '%s/pullrequest'", githubIdentifier, githubIdentifier)
-		c.Kind = githubPullRequestIdentifier
-	}
-	if c.Kind == giteaIdentifier {
-		logrus.Warnf("The kind %q for actions is deprecated in favor of '%s/pullrequest'", giteaIdentifier, giteaIdentifier)
-		c.Kind = giteaPullRequestIdentifier
-	}
-	if c.DeprecatedScmID != "" {
-		if c.ScmID == "" {
-			logrus.Warningf("%q is deprecated in favor of %q.", "scmID", "scmid")
-			c.ScmID = c.DeprecatedScmID
-		} else {
-			logrus.Warningf("deprecatedscmID: %q", c.DeprecatedScmID)
-			logrus.Warningf("scmid: %q", c.ScmID)
-			logrus.Warningf("%q and %q are mutually exclusive, ignoring %q",
-				"scmid", "deprecatedscmID", "deprecatedscmID")
-		}
-		c.DeprecatedScmID = ""
+	if c.Kind == githubIdentifier || c.Kind == giteaIdentifier {
+		return fmt.Errorf("action kind %q was removed in v1; use %s/pullrequest", c.Kind, c.Kind)
 	}
 
 	if c.ScmID == "" {

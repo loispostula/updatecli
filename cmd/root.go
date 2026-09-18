@@ -128,13 +128,9 @@ func init() {
 		}
 	}
 	rootCmd.AddCommand(
-		applyCmd,
-		diffCmd,
-		prepareCmd,
 		manifestCmd,
 		pipelineCmd,
 		udashCmd,
-		showCmd,
 		composeCmd,
 		versionCmd,
 		docsCmd,
@@ -175,7 +171,7 @@ func run(command string) error {
 	e.Options.DisableUdashReport = disableUdashReport
 
 	switch command {
-	case "apply", "compose/apply", "pipeline/apply":
+	case "compose/apply", "pipeline/apply":
 		udash.APIURLSelector = udashReportAPI
 
 		if applyClean {
@@ -197,7 +193,7 @@ func run(command string) error {
 			logrus.Errorf("%s %s", result.FAILURE, err)
 			return err
 		}
-	case "diff", "compose/diff", "pipeline/diff":
+	case "compose/diff", "pipeline/diff":
 		udash.APIURLSelector = udashReportAPI
 		if diffClean {
 			defer func() {
@@ -219,7 +215,7 @@ func run(command string) error {
 			return err
 		}
 
-	case "prepare", "pipeline/prepare":
+	case "pipeline/prepare":
 		if prepareClean {
 			defer func() {
 				if err := e.Clean(); err != nil {
@@ -277,9 +273,8 @@ func run(command string) error {
 			return err
 		}
 
-	// Show is deprecated
-	case "manifest/show", "show", "compose/show":
-		if showClean {
+	case "manifest/show", "compose/show":
+		if e.Options.Pipeline.Target.Clean {
 			defer func() {
 				if err := e.Clean(); err != nil {
 					logrus.Errorf("error in show clean - %s", err)
@@ -287,7 +282,11 @@ func run(command string) error {
 			}()
 		}
 
-		if !showDisablePrepare {
+		disablePrepare := manifestShowDisablePrepare
+		if command == "compose/show" {
+			disablePrepare = composeCmdDisablePrepare
+		}
+		if !disablePrepare {
 			err := e.Prepare(ctx)
 			if err != nil {
 				logrus.Errorf("%s %s", result.FAILURE, err)

@@ -89,17 +89,6 @@ type MergeSpec struct {
 
 // ActionSpec specifies the configuration of an action of type "GitHub Pull Request"
 type ActionSpec struct {
-	// automerge allows to enable/disable the automerge feature on new pullrequest
-	// deprecated since the field "merge.strategy" should now be used to specify the merge strategy and enable automerge with "auto" value.
-	//
-	// compatible:
-	//   * action
-	//
-	// default:
-	//   false
-	//
-	// deprecated: use merge.strategy: auto instead
-	AutoMerge *bool `yaml:",omitempty"`
 	// title allows to override the pull request title
 	//
 	// compatible:
@@ -240,18 +229,6 @@ func (s *ActionSpec) Validate() error {
 
 	if _, err := isMergeMethodValid(s.MergeMethod); err != nil {
 		return err
-	}
-
-	// Handle deprecated AutoMerge field
-	if s.AutoMerge != nil {
-		logrus.Warningln("'automerge' is deprecated, please use 'merge.strategy: auto' instead")
-		switch *s.AutoMerge {
-		case true:
-			s.Merge.Strategy = MergeStrategyAuto
-		case false:
-			s.Merge.Strategy = MergeStrategyManual
-		}
-		s.AutoMerge = nil
 	}
 
 	// Validate merge strategy
@@ -685,7 +662,6 @@ func (p *PullRequest) updatePullRequest(ctx context.Context, retry int) error {
 	}
 
 	if len(p.spec.Labels) != 0 {
-		// deprecated since the field "merge.strategy" should now be used to specify the merge strategy and enable automerge with "auto" value.
 		input.LabelIDs = &labelsID
 	}
 

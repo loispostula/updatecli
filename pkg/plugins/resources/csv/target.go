@@ -44,37 +44,6 @@ func (c *CSV) Target(_ context.Context, source string, scm scm.ScmHandler, dryRu
 
 		query := ""
 		switch c.engine {
-		case ENGINEDASEL_V1:
-			logrus.Debugf("Using engine %q", c.engine)
-			switch len(c.spec.Query) > 0 {
-			case true:
-				query = c.spec.Query
-				queryResults, err = c.contents[i].MultipleQuery(c.spec.Query)
-
-				if err != nil {
-					return err
-				}
-
-			case false:
-				query = c.spec.Key
-				queryResult, err := c.contents[i].Query(c.spec.Key)
-
-				if err != nil {
-					return err
-				}
-
-				queryResults = append(queryResults, queryResult)
-
-			}
-
-		case ENGINEDASEL_V2:
-			logrus.Debugf("Using engine %q", c.engine)
-			query = c.spec.Key
-			queryResults, err = c.contents[i].QueryV2(c.spec.Key)
-			if err != nil {
-				return err
-			}
-
 		case ENGINEDASEL_V3:
 			logrus.Debugf("Using engine %q", c.engine)
 			query = c.spec.Key
@@ -120,31 +89,8 @@ func (c *CSV) Target(_ context.Context, source string, scm scm.ScmHandler, dryRu
 			continue
 		}
 
-		// Update the target file with the new value.
-		// The dasel v3 engine mutates the native parsed rows in place; the CSV
-		// writer then serializes those rows. v1 and v2 use the shared v1 node.
-		switch c.engine {
-		case ENGINEDASEL_V3:
-			if err = c.contents[i].PutV3(c.spec.Key, c.spec.Value); err != nil {
-				return err
-			}
-
-		default:
-			switch len(c.spec.Query) > 0 {
-			case true:
-				err = c.contents[i].PutMultiple(c.spec.Query, c.spec.Value)
-
-				if err != nil {
-					return err
-				}
-
-			case false:
-				err = c.contents[i].Put(c.spec.Key, c.spec.Value)
-
-				if err != nil {
-					return err
-				}
-			}
+		if err = c.contents[i].PutV3(c.spec.Key, newValue); err != nil {
+			return err
 		}
 
 		err = c.contents[i].Write()

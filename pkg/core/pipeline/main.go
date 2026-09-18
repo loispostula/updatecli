@@ -61,9 +61,6 @@ type Pipeline struct {
 func (p *Pipeline) Init(config *config.Config, options Options) error {
 
 	p.Name = config.Spec.Name
-	if len(config.Spec.Title) > 0 && p.Name == "" {
-		p.Name = config.Spec.Title
-	}
 	p.unrenderedName = p.Name
 
 	p.Options = options
@@ -673,9 +670,6 @@ func (p *Pipeline) String() string {
 // refreshName sets the pipeline and report names from the rendered configuration.
 func (p *Pipeline) refreshName() {
 	p.Name = p.Config.Spec.Name
-	if len(p.Config.Spec.Title) > 0 && p.Config.Spec.Name == "" {
-		p.Name = p.Config.Spec.Title
-	}
 	p.Report.Name = p.Name
 }
 

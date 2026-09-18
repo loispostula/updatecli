@@ -10,6 +10,8 @@ import (
 )
 
 var (
+	prepareClean bool
+
 	pipelinePrepareCmd = &cobra.Command{
 		Args:  cobra.MatchAll(cobra.MaximumNArgs(1)),
 		Use:   "prepare NAME[:TAG|@DIGEST]",

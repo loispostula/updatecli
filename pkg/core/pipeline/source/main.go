@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -160,41 +161,14 @@ func (c *Config) Validate() error {
 
 	missingParameters := []string{}
 
-	// Handle scmID deprecation
-	if len(c.DeprecatedSCMID) > 0 {
-		switch len(c.SCMID) {
-		case 0:
-			logrus.Warningf("%q is deprecated in favor of %q.", "scmID", "scmid")
-			c.SCMID = c.DeprecatedSCMID
-			c.DeprecatedSCMID = ""
-		default:
-			logrus.Warningf("%q and %q are mutually exclusive, ignoring %q",
-				"scmID", "scmid", "scmID")
-		}
-	}
-
 	// Validate that kind is set
 	if len(c.Kind) == 0 {
 		missingParameters = append(missingParameters, "kind")
 	}
 
-	// Handle depends_on deprecation
-	if len(c.DeprecatedDependsOn) > 0 {
-		switch len(c.DependsOn) == 0 {
-		case true:
-			logrus.Warningln("\"depends_on\" is deprecated in favor of \"dependson\".")
-			c.DependsOn = c.DeprecatedDependsOn
-			c.DeprecatedDependsOn = []string{}
-		case false:
-			logrus.Warningln("\"depends_on\" is ignored in favor of \"dependson\".")
-			c.DeprecatedDependsOn = []string{}
-		}
-	}
-
 	// Ensure kind is lowercase
 	if c.Kind != strings.ToLower(c.Kind) {
-		logrus.Warningf("kind value %q must be lowercase", c.Kind)
-		c.Kind = strings.ToLower(c.Kind)
+		return fmt.Errorf("kind value %q must be lowercase", c.Kind)
 	}
 
 	err := c.Transformers.Validate()

@@ -12,7 +12,7 @@ sources:
     kind: json
     spec:
       file: https://www.updatecli.io/schema/latest/config.json
-      key: $id
+      key: get("$id")
 
 conditions:
   local:
@@ -30,7 +30,7 @@ conditions:
     disablesourceinput: true
     spec:
       file: https://www.updatecli.io/schema/latest/config.json
-      key: $schema
+      key: get("$schema")
       value: http://json-schema.org/draft-04/schema
 
 targets:

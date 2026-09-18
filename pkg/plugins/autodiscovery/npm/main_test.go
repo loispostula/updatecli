@@ -287,7 +287,7 @@ targets:
     kind: 'json'
     spec:
       file: 'package.json'
-      key: 'dependencies.@mdi/font'
+      key: 'get("dependencies").get("@mdi/font")'
     sourceid: 'npm'
 
 `,

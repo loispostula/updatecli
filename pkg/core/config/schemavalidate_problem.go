@@ -11,8 +11,7 @@ type Severity string
 const (
 	// SeverityError reports something Updatecli cannot interpret.
 	SeverityError Severity = "error"
-	// SeverityWarning reports something Updatecli still accepts, such as a deprecated
-	// key, or something it cannot fully check.
+	// SeverityWarning reports a non-fatal issue or something Updatecli cannot fully check.
 	SeverityWarning Severity = "warning"
 )
 

@@ -1,13 +1,10 @@
 ---
-name: 'Updatecli Deprecated Commands TestSuite'
-vars:
-  message:
-    deprecated: 'Deprecated command'
+name: 'Updatecli Removed Interfaces TestSuite'
 testcases:
-  - name: "Test deprecated diff and apply commands show warnings but still work"
+  - name: "Removed commands and manifest settings fail with migration guidance"
     steps:
       - script: '../scripts/test_deprecated.bash'
         type: 'exec'
         assertions:
           - 'result.code ShouldEqual 0'
-          - 'result.systemout ShouldContainSubstring "{{ .message.deprecated }}"'
+          - 'result.systemout ShouldContainSubstring "Removed interfaces rejected"'

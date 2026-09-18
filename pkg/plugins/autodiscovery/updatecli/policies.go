@@ -14,7 +14,6 @@ import (
 var (
 	// DefaultFiles specifies accepted Updatecli compose filename
 	DefaultFiles []string = []string{
-		compose.DeprecatedDefaultComposeFilename,
 		compose.DefaultComposeFilename,
 	}
 )

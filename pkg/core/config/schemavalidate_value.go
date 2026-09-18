@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"reflect"
 	"strings"
 
 	"github.com/agext/levenshtein"
@@ -37,101 +36,6 @@ func lowercaseKeys(value interface{}) interface{} {
 	default:
 		return value
 	}
-}
-
-// deprecatedReplacements names the key superseding a deprecated one, when the
-// replacement cannot be derived from the field name itself.
-var deprecatedReplacements = map[string]string{
-	"title":        "name",
-	"pullrequests": "actions",
-	"conditionids": "dependson",
-	"depends_on":   "dependson",
-}
-
-// deprecatedFieldKeys collects the YAML keys Updatecli still accepts but hides from its
-// schema, which it marks with a `jsonschema:"-"` struct tag.
-//
-// Deriving the list by reflection rather than maintaining it by hand keeps it correct as
-// fields are deprecated: a key hidden from the schema would otherwise be reported as
-// unknown even though the manifest still works.
-func deprecatedFieldKeys(types []reflect.Type) map[string]string {
-
-	keys := map[string]string{}
-
-	var collect func(t reflect.Type, depth int)
-	collect = func(t reflect.Type, depth int) {
-		for t != nil {
-			switch t.Kind() {
-			case reflect.Ptr, reflect.Slice, reflect.Array, reflect.Map:
-				t = t.Elem()
-				continue
-			}
-			break
-		}
-
-		// Manifest types nest shallowly, the bound only guards against a cycle.
-		if t == nil || t.Kind() != reflect.Struct || depth > 6 {
-			return
-		}
-
-		for i := 0; i < t.NumField(); i++ {
-			field := t.Field(i)
-
-			// An inlined struct contributes its own keys to the mapping holding it.
-			if field.Anonymous && field.Tag.Get("jsonschema") != "-" {
-				collect(field.Type, depth)
-				continue
-			}
-
-			key := yamlKey(field)
-			if key == "" {
-				continue
-			}
-
-			if field.Tag.Get("jsonschema") == "-" {
-				replacement, ok := deprecatedReplacements[strings.ToLower(key)]
-				if !ok {
-					replacement = strings.ToLower(key)
-				}
-				keys[key] = replacement
-				continue
-			}
-
-			collect(field.Type, depth+1)
-		}
-	}
-
-	for _, t := range types {
-		collect(t, 0)
-	}
-
-	return keys
-}
-
-// yamlKey returns the mapping key a struct field is decoded from, mirroring how the YAML
-// library derives it: the name in the tag when present, the lowercased field name
-// otherwise. It returns an empty string for a field that is never decoded.
-func yamlKey(field reflect.StructField) string {
-
-	if field.PkgPath != "" {
-		return ""
-	}
-
-	tag := field.Tag.Get("yaml")
-	if tag == "-" {
-		return ""
-	}
-
-	name, _, _ := strings.Cut(tag, ",")
-	if name != "" {
-		return name
-	}
-
-	if field.Anonymous {
-		return ""
-	}
-
-	return strings.ToLower(field.Name)
 }
 
 // suggest returns a hint naming the closest candidate to an unknown value, or an empty

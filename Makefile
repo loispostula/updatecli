@@ -34,15 +34,15 @@ release.snapshot: ## release.snapshot generate a snapshot release but do not pub
 
 .PHONY: diff
 diff: ## Run the "diff" updatecli's subcommand for smoke test
-	"$(local_bin)" diff --config ./updatecli.d
+	"$(local_bin)" pipeline diff --config ./updatecli.d
 
 .PHONY: show
 show: ## Run the "show" updatecli's subcommand for smoke test
-	"$(local_bin)" show --config ./updatecli.d
+	"$(local_bin)" manifest show --config ./updatecli.d
 
 .PHONY: apply
 apply: ## Run the "apply" updatecli's subcommand for smoke test
-	"$(local_bin)" apply --config ./updatecli.d
+	"$(local_bin)" pipeline apply --config ./updatecli.d
 
 .PHONY: version
 version: ## Run the "version" updatecli's subcommand for smoke test

@@ -25,8 +25,6 @@ var (
 // Spec defines a specification for a "maven" resource
 // parsed from an updatecli manifest file
 type Spec struct {
-	// Deprecated, please specify the Maven url in the repository
-	URL string `yaml:",omitempty"`
 	// Specifies the maven repository url + name
 	Repository string `yaml:",omitempty"`
 	// Repositories specifies a list of Maven repository where to look for version. Order matter, version is retrieve from the first repository with the last one being Maven Central.
@@ -152,15 +150,6 @@ func (m Maven) Validate() error {
 func (s *Spec) Sanitize() error {
 
 	var errs []error
-	var err error
-
-	if len(s.URL) > 0 {
-		logrus.Warningf("Parameter %q is deprecate, please prefix its content to parameter %q", "URL", "repository")
-		s.Repository, err = joinURL([]string{s.URL, s.Repository})
-		if err != nil {
-			logrus.Errorln(err)
-		}
-	}
 
 	if len(s.Repository) > 0 {
 		sanitizedURL, err := joinURL([]string{s.Repository})
@@ -207,6 +196,5 @@ func (m *Maven) ReportConfig() interface{} {
 		Version:      m.spec.Version,
 		Repository:   redact.URL(m.spec.Repository),
 		Repositories: repositories,
-		URL:          redact.URL(m.spec.URL),
 	}
 }

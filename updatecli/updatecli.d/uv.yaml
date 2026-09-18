@@ -11,7 +11,8 @@ actions:
     kind: "github/pullrequest"
     title: "chore(ci): upgrade uv version"
     spec:
-      automerge: true
+      merge:
+        strategy: auto
       labels:
         - chore
         - dependencies

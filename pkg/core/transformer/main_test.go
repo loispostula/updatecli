@@ -27,25 +27,6 @@ var (
 			expectedOutput: "alpha-2.263",
 		},
 		Data{
-			input: "2.263",
-			rules: Transformers{
-				Transformer{
-					AddPrefix:           "alpha-",
-					DeprecatedAddPrefix: "beta-",
-				},
-			},
-			expectedOutput: "alpha-2.263",
-		},
-		Data{
-			input: "2.263",
-			rules: Transformers{
-				Transformer{
-					DeprecatedAddPrefix: "beta-",
-				},
-			},
-			expectedOutput: "beta-2.263",
-		},
-		Data{
 			input: "1.0.0",
 			rules: Transformers{
 				Transformer{
@@ -69,29 +50,10 @@ var (
 			input: "1.0.0",
 			rules: Transformers{
 				Transformer{
-					SemVerInc:           "major,minor,patch",
-					DeprecatedSemVerInc: "major",
-				},
-			},
-			expectedOutput: "2.1.1",
-		},
-		Data{
-			input: "1.0.0",
-			rules: Transformers{
-				Transformer{
 					SemVerInc: "major,minor,patch",
 				},
 			},
 			expectedOutput: "2.1.1",
-		},
-		Data{
-			input: "1.0.0",
-			rules: Transformers{
-				Transformer{
-					DeprecatedSemVerInc: "major",
-				},
-			},
-			expectedOutput: "2.0.0",
 		},
 		Data{
 			input: "2.263",
@@ -104,48 +66,6 @@ var (
 			expectedErr:    nil,
 		},
 		Data{
-			input: "2.263",
-			rules: Transformers{
-				Transformer{
-					AddSuffix:           "-jdk11",
-					DeprecatedAddSuffix: "-jdk12",
-				},
-			},
-			expectedOutput: "2.263-jdk11",
-			expectedErr:    nil,
-		},
-		Data{
-			input: "2.263",
-			rules: Transformers{
-				Transformer{
-					DeprecatedAddSuffix: "-jdk12",
-				},
-			},
-			expectedOutput: "2.263-jdk12",
-			expectedErr:    nil,
-		},
-		Data{
-			input: "alpha-2.263",
-			rules: Transformers{
-				Transformer{
-					TrimPrefix:           "alpha-",
-					DeprecatedTrimPrefix: "al",
-				},
-			},
-			expectedOutput: "2.263",
-			expectedErr:    nil,
-		},
-		Data{
-			input: "alpha-2.263",
-			rules: Transformers{
-				Transformer{
-					DeprecatedTrimPrefix: "al",
-				},
-			},
-			expectedOutput: "pha-2.263",
-			expectedErr:    nil,
-		},
-		Data{
 			input: "alpha-2.263",
 			rules: Transformers{
 				Transformer{
@@ -153,27 +73,6 @@ var (
 				},
 			},
 			expectedOutput: "2.263",
-			expectedErr:    nil,
-		},
-		Data{
-			input: "2.263-jdk11",
-			rules: Transformers{
-				Transformer{
-					TrimSuffix:           "-jdk11",
-					DeprecatedTrimSuffix: "11",
-				},
-			},
-			expectedOutput: "2.263",
-			expectedErr:    nil,
-		},
-		Data{
-			input: "2.263-jdk11",
-			rules: Transformers{
-				Transformer{
-					DeprecatedTrimSuffix: "11",
-				},
-			},
-			expectedOutput: "2.263-jdk",
 			expectedErr:    nil,
 		},
 		Data{
@@ -264,40 +163,6 @@ var (
 			expectedErr:    nil,
 		},
 		Data{
-			input: "1.18.0",
-			rules: Transformers{
-				Transformer{
-					DeprecatedFindSubMatch: `(\d*).(\d*)`,
-				},
-			},
-			expectedOutput: "1.18",
-			expectedErr:    nil,
-		},
-		Data{
-			input: "1.18.0",
-			rules: Transformers{
-				Transformer{
-					DeprecatedFindSubMatch: `(\d*).(\d*)`,
-					FindSubMatch: FindSubMatch{
-						Pattern:      `\d*.(\d*)`,
-						CaptureIndex: 1,
-					},
-				},
-			},
-			expectedOutput: "18",
-			expectedErr:    nil,
-		},
-		Data{
-			input: "noalphanumericvalue",
-			rules: Transformers{
-				Transformer{
-					DeprecatedFindSubMatch: `\d.*`,
-				},
-			},
-			expectedOutput: "",
-			expectedErr:    nil,
-		},
-		Data{
 			input: "1.19.0",
 			rules: Transformers{
 				Transformer{
@@ -330,33 +195,6 @@ var (
 					FindSubMatch: FindSubMatch{
 						Pattern:      `\d*.(\d*).(\d*)`,
 						CaptureIndex: 2,
-					},
-				},
-			},
-			expectedOutput: "0",
-			expectedErr:    nil,
-		},
-		Data{
-			input: "1.17.0",
-			rules: Transformers{
-				Transformer{
-					FindSubMatch: FindSubMatch{
-						Pattern:                `\d*.(\d*).(\d*)`,
-						DeprecatedCaptureIndex: 2,
-					},
-				},
-			},
-			expectedOutput: "0",
-			expectedErr:    nil,
-		},
-		Data{
-			input: "1.17.0",
-			rules: Transformers{
-				Transformer{
-					FindSubMatch: FindSubMatch{
-						Pattern:                `\d*.(\d*).(\d*)`,
-						CaptureIndex:           2,
-						DeprecatedCaptureIndex: 1,
 					},
 				},
 			},

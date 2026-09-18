@@ -557,7 +557,7 @@ func TestSortedResourcesKeys(t *testing.T) {
 			},
 		},
 		{
-			Name: "Scenario 7: Target With deprecated condition ids",
+			Name: "Scenario 7: Target With explicit condition dependencies",
 			Conditions: map[string]condition.Config{
 				"1": {
 					ResourceConfig: resource.ResourceConfig{
@@ -593,10 +593,11 @@ func TestSortedResourcesKeys(t *testing.T) {
 			Targets: map[string]target.Config{
 				"1": {
 					ResourceConfig: resource.ResourceConfig{
-						Kind: "shell",
+						Kind:      "shell",
+						DependsOn: []string{"condition#1", "condition#4"},
 					},
-					DeprecatedConditionIDs: []string{"1", "4"},
-					DisableSourceInput:     true,
+					DisableConditions:  true,
+					DisableSourceInput: true,
 				},
 			},
 			ExpectedResult: [][]ResultLeaf{

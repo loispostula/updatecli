@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/go-viper/mapstructure/v2"
 	"github.com/sirupsen/logrus"
 	daselV2 "github.com/tomwright/dasel/v2"
 )
@@ -31,17 +30,13 @@ type JsonMatch struct {
 // Transformer holds a transformer rule
 type Transformer struct {
 	// AddPrefix adds a prefix to the transformer input value
-	AddPrefix           string `yaml:",omitempty"`
-	DeprecatedAddPrefix string `yaml:"addPrefix,omitempty" jsonschema:"-"`
+	AddPrefix string `yaml:",omitempty"`
 	// AddSuffix adds a suffix to the transformer input value
-	AddSuffix           string `yaml:",omitempty"`
-	DeprecatedAddSuffix string `yaml:"addSuffix,omitempty" jsonschema:"-"`
+	AddSuffix string `yaml:",omitempty"`
 	// TrimPrefix removes a prefix to the transformer input value
-	TrimPrefix           string `yaml:",omitempty"`
-	DeprecatedTrimPrefix string `yaml:"trimPrefix,omitempty" jsonschema:"-"`
+	TrimPrefix string `yaml:",omitempty"`
 	// TrimSuffix removes the suffix from the transformer input value
-	TrimSuffix           string `yaml:",omitempty"`
-	DeprecatedTrimSuffix string `yaml:"trimSuffix,omitempty" jsonschema:"-"`
+	TrimSuffix string `yaml:",omitempty"`
 	// Replacers specifies a list of replacer instruction
 	Replacers Replacers `yaml:",omitempty"`
 	// Replacer specifies what value needs to be changed and how
@@ -49,12 +44,10 @@ type Transformer struct {
 	// Find searches for a specific value if it exists and return false if it doesn't
 	Find string `yaml:",omitempty"`
 	// Find searches for a specific value if it exists then return the value using regular expression
-	FindSubMatch           FindSubMatch `yaml:",omitempty"`
-	DeprecatedFindSubMatch interface{}  `yaml:"findSubMatch,omitempty" jsonschema:"-"`
-	JsonMatch              JsonMatch    `yaml:",omitempty"`
+	FindSubMatch FindSubMatch `yaml:",omitempty"`
+	JsonMatch    JsonMatch    `yaml:",omitempty"`
 	// SemvVerInc specifies a comma separated list semantic versioning component that needs to be upgraded.
-	SemVerInc           string `yaml:",omitempty"`
-	DeprecatedSemVerInc string `yaml:"semverInc,omitempty" jsonschema:"-"`
+	SemVerInc string `yaml:",omitempty"`
 	// Quote add quote around the value
 	Quote bool `yaml:",omitempty"`
 	// Unquote remove quotes around the value
@@ -254,112 +247,7 @@ func applySemVerInc(input, semVerInc string) (string, error) {
 }
 
 func (t *Transformer) Validate() error {
-
-	warningMessageToLowerCase := func(key string) {
-		logrus.Warningf("%q is deprecated in favor of %q", key, strings.ToLower(key))
-	}
-
-	warningMessageValueIgnore := func(key string) {
-		logrus.Warningf("Key %q and %q are mutually exclusive, ignoring %q ", key, strings.ToLower(key), key)
-	}
-
-	if len(t.DeprecatedAddPrefix) > 0 {
-		warningMessageToLowerCase("addPrefix")
-
-		switch len(t.AddPrefix) {
-		case 0:
-			t.AddPrefix = t.DeprecatedAddPrefix
-			t.DeprecatedAddPrefix = ""
-		default:
-			warningMessageValueIgnore("addPrefix")
-		}
-
-	}
-
-	if len(t.DeprecatedAddSuffix) > 0 {
-		warningMessageToLowerCase("addSuffix")
-		switch len(t.AddSuffix) {
-		case 0:
-			t.AddSuffix = t.DeprecatedAddSuffix
-			t.DeprecatedAddSuffix = ""
-		default:
-			warningMessageValueIgnore("addSuffix")
-		}
-	}
-
-	if len(t.DeprecatedTrimPrefix) > 0 {
-		warningMessageToLowerCase("trimPrefix")
-		switch len(t.TrimPrefix) {
-		case 0:
-			t.TrimPrefix = t.DeprecatedTrimPrefix
-			t.DeprecatedTrimPrefix = ""
-		default:
-			warningMessageValueIgnore("trimPrefix")
-		}
-	}
-
-	if len(t.DeprecatedTrimSuffix) > 0 {
-		warningMessageToLowerCase("trimSuffix")
-		switch len(t.TrimSuffix) {
-		case 0:
-			t.TrimSuffix = t.DeprecatedTrimSuffix
-			t.DeprecatedTrimSuffix = ""
-		default:
-			warningMessageValueIgnore("trimSuffix")
-		}
-	}
-
-	if len(t.DeprecatedSemVerInc) > 0 {
-		warningMessageToLowerCase("semverInc")
-		switch len(t.SemVerInc) {
-		case 0:
-			t.SemVerInc = t.DeprecatedSemVerInc
-			t.DeprecatedSemVerInc = ""
-		default:
-			warningMessageValueIgnore("semverInc")
-		}
-	}
-
-	// t.DeprecatedFindSubMatch
-	f := FindSubMatch{}
-	value := t.DeprecatedFindSubMatch
-
-	// If the manifest contains only the `pattern` string, then `0` is the implied value of `captureIndex`
-	// Otherwise, both pattern and captureIndex are retrieved from the map value of the manifest
-	// Note also that a value of `0` for `captureIndex` returns all submatches, and individual submatch indexes start at `1`.
-	if _, ok := value.(string); ok {
-		f.Pattern = value.(string)
-		f.CaptureIndex = 0
-	} else {
-		err := mapstructure.Decode(value, &f)
-		if err != nil {
-			return err
-		}
-
-	}
-
-	if f != (FindSubMatch{}) {
-		warningMessageToLowerCase("findSubMatch")
-
-		switch t.FindSubMatch == (FindSubMatch{}) {
-		case true:
-			t.FindSubMatch.Pattern = f.Pattern
-			t.FindSubMatch.CaptureIndex = f.CaptureIndex
-			t.DeprecatedFindSubMatch = nil
-		case false:
-			warningMessageValueIgnore("findSubMatch")
-		default:
-			logrus.Errorln("unexpected findsubmatch error")
-		}
-	}
-
-	err := t.FindSubMatch.Validate()
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return t.FindSubMatch.Validate()
 }
 
 func (t *Transformers) Validate() error {

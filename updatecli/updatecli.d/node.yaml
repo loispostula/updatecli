@@ -10,7 +10,8 @@ actions:
     kind: "github/pullrequest"
     title: "chore(dockerfile): upgrade node version"
     spec:
-      automerge: true
+      merge:
+        strategy: auto
       labels:
         - chore
         - dependencies

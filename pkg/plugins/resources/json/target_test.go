@@ -26,17 +26,17 @@ func TestTarget(t *testing.T) {
 			name: "Default successful workflow",
 			spec: Spec{
 				File: "testdata/data.json",
-				Key:  ".firstName",
+				Key:  "firstName",
 			},
 			sourceInput:    "Jack",
 			expectedResult: false,
 		},
 		{
-			name: "Default successful workflow using Dasel v2",
+			name: "Default successful workflow using Dasel v3",
 			spec: Spec{
 				File:   "testdata/data.json",
-				Key:    ".firstName",
-				Engine: strPtr(ENGINEDASEL_V2),
+				Key:    "firstName",
+				Engine: strPtr(ENGINEDASEL_V3),
 			},
 			sourceInput:    "Jack",
 			expectedResult: false,
@@ -45,7 +45,7 @@ func TestTarget(t *testing.T) {
 			name: "Default successful workflow",
 			spec: Spec{
 				File: "testdata/data.json",
-				Key:  ".firstName",
+				Key:  "firstName",
 			},
 			sourceInput:    "Tom",
 			expectedResult: true,
@@ -53,8 +53,8 @@ func TestTarget(t *testing.T) {
 		{
 			name: "Default successful workflow",
 			spec: Spec{
-				File:  "testdata/data.json",
-				Query: ".phoneNumbers.[*].type",
+				File: "testdata/data.json",
+				Key:  "phoneNumbers.map(type)...",
 			},
 			sourceInput:    "Tom",
 			expectedResult: true,
@@ -63,8 +63,8 @@ func TestTarget(t *testing.T) {
 			name: "Update first array item successful workflow",
 			spec: Spec{
 				File:   "testdata/data.json",
-				Key:    ".phoneNumbers.first().type",
-				Engine: strPtr(ENGINEDASEL_V2),
+				Key:    "phoneNumbers[0].type",
+				Engine: strPtr(ENGINEDASEL_V3),
 			},
 			sourceInput:    "apartment",
 			expectedResult: true,
@@ -73,8 +73,8 @@ func TestTarget(t *testing.T) {
 			name: "Unchanged first array item successful workflow",
 			spec: Spec{
 				File:   "testdata/data.json",
-				Key:    ".phoneNumbers.first().type",
-				Engine: strPtr(ENGINEDASEL_V2),
+				Key:    "phoneNumbers[0].type",
+				Engine: strPtr(ENGINEDASEL_V3),
 			},
 			sourceInput:    "home",
 			expectedResult: false,
@@ -122,7 +122,7 @@ func TestTarget(t *testing.T) {
 			err = j.Target(context.Background(), tt.sourceInput, nil, true, &gotResult)
 
 			if tt.wantErr {
-				assert.Equal(t, tt.expectedErrorMsg.Error(), err.Error())
+				require.ErrorContains(t, err, tt.expectedErrorMsg.Error())
 			} else {
 				require.NoError(t, err)
 			}
@@ -151,8 +151,7 @@ func TestTargetPreservesSpecialCharacters(t *testing.T) {
 		// selector syntax that does not accept the leading dot used by v1/v2.
 		key string
 	}{
-		{name: "dasel/v1 (default)", engine: nil, key: ".version"},
-		{name: "dasel/v2", engine: strPtr(ENGINEDASEL_V2), key: ".version"},
+		{name: "dasel/v3 (default)", engine: nil, key: "version"},
 		{name: "dasel/v3", engine: strPtr(ENGINEDASEL_V3), key: "version"},
 	}
 

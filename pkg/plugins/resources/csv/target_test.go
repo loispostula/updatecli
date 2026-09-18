@@ -26,7 +26,7 @@ func TestTarget(t *testing.T) {
 			name: "Default successful workflow",
 			spec: Spec{
 				File: "testdata/data.csv",
-				Key:  ".[0].firstname",
+				Key:  "$this[0].firstname",
 			},
 			sourceInput:    "Tom",
 			expectedResult: true,
@@ -34,8 +34,8 @@ func TestTarget(t *testing.T) {
 		{
 			name: "Default successful workflow",
 			spec: Spec{
-				File:  "testdata/data.csv",
-				Query: ".[*].firstname",
+				File: "testdata/data.csv",
+				Key:  "map(firstname)...",
 			},
 			sourceInput:    "Tom",
 			expectedResult: true,
@@ -44,7 +44,7 @@ func TestTarget(t *testing.T) {
 			name: "Default successful workflow",
 			spec: Spec{
 				File:  "testdata/data.2.csv",
-				Key:   ".[0].firstname",
+				Key:   "$this[0].firstname",
 				Comma: ';',
 			},
 			sourceInput:    "Tom",
@@ -54,13 +54,13 @@ func TestTarget(t *testing.T) {
 			name: "Do not exist query workflow",
 			spec: Spec{
 				File:  "testdata/data.2.csv",
-				Key:   ".[0].DoNotExist",
+				Key:   "$this[0].DoNotExist",
 				Comma: ';',
 			},
 			sourceInput:      "Tom",
 			expectedResult:   false,
 			wantErr:          true,
-			expectedErrorMsg: errors.New("could not find value for query \".[0].DoNotExist\" from file \"testdata/data.2.csv\""),
+			expectedErrorMsg: errors.New("map key not found"),
 		},
 		{
 			name: "Changed workflow with Dasel v3",
@@ -95,7 +95,7 @@ func TestTarget(t *testing.T) {
 			err = c.Target(context.Background(), tt.sourceInput, nil, true, &gotResult)
 
 			if tt.wantErr {
-				assert.Equal(t, tt.expectedErrorMsg.Error(), err.Error())
+				require.ErrorContains(t, err, tt.expectedErrorMsg.Error())
 			} else {
 				require.NoError(t, err)
 			}
@@ -142,4 +142,29 @@ func TestTargetDaselV3Write(t *testing.T) {
 	// Untouched rows and headers survive.
 	assert.Contains(t, got, "firstname,surname,lastname", "expected header preserved, got:\n%s", got)
 	assert.Contains(t, got, "Alexis,Alex,Remi", "expected second row preserved, got:\n%s", got)
+}
+
+func TestTargetWritesSourceValue(t *testing.T) {
+	for _, tt := range []struct{ name, key, want string }{
+		{"single row", "$this[0].version", "version,name\nnew,first\nold,second\n"},
+		{"all rows", "map(version)...", "version,name\nnew,first\nnew,second\n"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			path := t.TempDir() + "/data.csv"
+			initial := "version,name\nold,first\nold,second\n"
+			require.NoError(t, os.WriteFile(path, []byte(initial), 0600))
+			resource, err := New(Spec{File: path, Key: tt.key})
+			require.NoError(t, err)
+			targetResult := result.Target{}
+			require.NoError(t, resource.Target(context.Background(), "new", nil, true, &targetResult))
+			content, err := os.ReadFile(path)
+			require.NoError(t, err)
+			require.Equal(t, initial, string(content))
+			require.NoError(t, resource.Target(context.Background(), "new", nil, false, &targetResult))
+			content, err = os.ReadFile(path)
+			require.NoError(t, err)
+			require.Equal(t, tt.want, string(content))
+			require.True(t, targetResult.Changed)
+		})
+	}
 }

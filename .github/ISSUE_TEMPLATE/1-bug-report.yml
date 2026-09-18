@@ -93,7 +93,7 @@ body:
 
       3. Run updatecli with tracing enabled:
       ```bash
-      OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317 updatecli diff --config <your-pipeline.yaml>
+      OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317 updatecli pipeline diff --config <your-pipeline.yaml>
       ```
 
       4. Attach the resulting `traces/output.json` file below.

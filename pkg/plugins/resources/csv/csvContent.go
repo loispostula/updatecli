@@ -7,9 +7,6 @@ import (
 	"reflect"
 	"strings"
 
-	das "github.com/tomwright/dasel"
-
-	"github.com/tomwright/dasel/storage"
 	"github.com/updatecli/updatecli/pkg/plugins/utils"
 	"github.com/updatecli/updatecli/pkg/plugins/utils/dasel"
 )
@@ -17,9 +14,10 @@ import (
 // csvContent is *** of the dasel FileContent
 type csvContent struct {
 	dasel.FileContent
-	csvDocument storage.CSVDocument
-	comma       rune
-	comment     rune
+	rows    []map[string]interface{}
+	headers []string
+	comma   rune
+	comment rune
 }
 
 func (c *csvContent) Read(rootDir string) error {
@@ -74,25 +72,16 @@ func (c *csvContent) Read(rootDir string) error {
 		}
 	}
 
-	c.csvDocument = storage.CSVDocument{
-		Value:   res,
-		Headers: headers,
-	}
-
-	c.DaselNode = das.New(c.csvDocument.Documents())
-
-	// dasel v2 and v3 operate on the native parsed rows. They share the same
-	// []map[string]interface{} backing slice as csvDocument.Value so that a v3
-	// in-place modification is reflected when the file is written back.
-	c.DaselV2Node = c.csvDocument.Value
-	c.DaselV3Data = c.csvDocument.Value
+	c.rows = res
+	c.headers = headers
+	c.DaselV3Data = c.rows
 
 	return nil
 }
 
 // derefValue unwraps pointer/interface indirections around a value. The dasel v3
 // engine stores modified values as *interface{}, so this resolves them to the
-// underlying value before serialization. It is a no-op for plain values (v1/v2).
+// underlying value before serialization.
 func derefValue(v interface{}) interface{} {
 	rv := reflect.ValueOf(v)
 	for rv.IsValid() && (rv.Kind() == reflect.Ptr || rv.Kind() == reflect.Interface) {
@@ -120,15 +109,15 @@ func (c *csvContent) Write() error {
 	writer.Comma = c.comma
 
 	// Iterate through the rows and write the output.
-	for i, r := range c.csvDocument.Value {
+	for i, r := range c.rows {
 		if i == 0 {
-			if err := writer.Write(c.csvDocument.Headers); err != nil {
+			if err := writer.Write(c.headers); err != nil {
 				return fmt.Errorf("could not write headers: %w", err)
 			}
 		}
 
 		values := make([]string, 0)
-		for _, header := range c.csvDocument.Headers {
+		for _, header := range c.headers {
 			val, ok := r[header]
 			if !ok {
 				val = ""

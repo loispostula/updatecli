@@ -417,7 +417,6 @@ func (gs *Spec) Merge(child interface{}) error {
 	if childGHSpec.Owner != "" {
 		gs.Owner = childGHSpec.Owner
 	}
-	// PullRequest is deprecated so not merging it
 	if childGHSpec.Repository != "" {
 		gs.Repository = childGHSpec.Repository
 	}

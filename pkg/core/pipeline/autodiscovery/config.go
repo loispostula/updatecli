@@ -21,8 +21,6 @@ type Config struct {
 			all
 	*/
 	GroupBy GroupBy
-	// !Deprecated in favor of `actionid`
-	PullrequestId string `yaml:",omitempty"`
 }
 
 // CrawlersConfig is a custom type used to generated the jsonschema.

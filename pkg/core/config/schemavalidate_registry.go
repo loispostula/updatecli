@@ -73,9 +73,6 @@ type schemaRegistry struct {
 	// kindSpecs holds, per section, the specification of every supported kind.
 	kindSpecs map[section]map[string]interface{}
 
-	// deprecated holds, per node, the keys still accepted but hidden from the schema.
-	deprecated map[string]map[string]string
-
 	mutex sync.Mutex
 	// compiled caches the specification schemas built so far, keyed by node.
 	compiled map[string]*validator.Schema
@@ -102,9 +99,6 @@ func newSchemaRegistry() (*schemaRegistry, error) {
 			sectionSCMs:       scm.GetScmMapping(),
 			sectionActions:    action.GetActionMapping(),
 		},
-		deprecated: map[string]map[string]string{
-			nodeRoot: deprecatedFieldKeys([]reflect.Type{reflect.TypeOf(Spec{})}),
-		},
 		compiled: map[string]*validator.Schema{},
 	}
 
@@ -125,7 +119,6 @@ func newSchemaRegistry() (*schemaRegistry, error) {
 		}
 
 		registry.resources[s] = compiled
-		registry.deprecated[string(s)] = deprecatedFieldKeys([]reflect.Type{reflect.TypeOf(alias)})
 	}
 
 	return registry, nil
@@ -186,18 +179,6 @@ func (r *schemaRegistry) kinds(s section) []string {
 	return names
 }
 
-// deprecatedKey reports whether a key is deprecated but still accepted at a node, along
-// with the key replacing it.
-func (r *schemaRegistry) deprecatedKey(node string, key string) (string, bool) {
-
-	r.mutex.Lock()
-	defer r.mutex.Unlock()
-
-	replacement, ok := r.deprecated[node][key]
-
-	return replacement, ok
-}
-
 // specNode names the node holding the specification of a kind.
 func specNode(s section, kind string) string {
 	return string(s) + "/" + kind
@@ -238,7 +219,6 @@ func (r *schemaRegistry) specSchema(s section, kind string) (*validator.Schema, 
 	}
 
 	r.compiled[node] = compiled
-	r.deprecated[node] = deprecatedFieldKeys([]reflect.Type{reflect.TypeOf(spec)})
 
 	return compiled, nil
 }

@@ -160,7 +160,7 @@ func TestValidateSchema(t *testing.T) {
 				    spec:
 				      url: https://example.com/repository.git
 				`,
-			expectedWarnings: []string{`"scmID" is deprecated in favor of "scmid"`},
+			expectedErrors: []string{`unknown key "scmID"`},
 		},
 		{
 			name: "a deprecated key reported as an error when strict",
@@ -179,7 +179,7 @@ func TestValidateSchema(t *testing.T) {
 				      url: https://example.com/repository.git
 				`,
 			options:        &strict,
-			expectedErrors: []string{`"scmID" is deprecated in favor of "scmid"`},
+			expectedErrors: []string{`unknown key "scmID"`},
 		},
 		{
 			// A template is only resolved once the pipeline runs, so the value reaching

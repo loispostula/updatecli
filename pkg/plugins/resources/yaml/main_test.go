@@ -17,7 +17,7 @@ func Test_Validate(t *testing.T) {
 			name: "Validation error when 'createmissingkey' is used with the yamlpath engine",
 			spec: Spec{
 				File:             "/tmp/test.yaml",
-				Key:              "foo.bar",
+				Key:              "$.foo.bar",
 				Engine:           EngineYamlPath,
 				CreateMissingKey: true,
 			},
@@ -27,7 +27,7 @@ func Test_Validate(t *testing.T) {
 			name: "Validation error when 'appendtoarray' is used with the yamlpath engine",
 			spec: Spec{
 				File:          "/tmp/test.yaml",
-				Key:           "foo.bar",
+				Key:           "$.foo.bar",
 				Engine:        EngineYamlPath,
 				AppendToArray: true,
 			},
@@ -37,7 +37,7 @@ func Test_Validate(t *testing.T) {
 			name: "Normal case with 'createmissingkey' and the go-yaml engine",
 			spec: Spec{
 				File:             "/tmp/test.yaml",
-				Key:              "foo.bar",
+				Key:              "$.foo.bar",
 				Engine:           EngineGoYaml,
 				CreateMissingKey: true,
 			},
@@ -47,7 +47,7 @@ func Test_Validate(t *testing.T) {
 			name: "Normal case with 'appendtoarray' and the default engine",
 			spec: Spec{
 				File:          "/tmp/test.yaml",
-				Key:           "foo.bar",
+				Key:           "$.foo.bar",
 				AppendToArray: true,
 			},
 			isErrorWanted: false,
@@ -56,7 +56,7 @@ func Test_Validate(t *testing.T) {
 			name: "Normal case with 'File'",
 			spec: Spec{
 				File: "/tmp/test.yaml",
-				Key:  "foo.bar",
+				Key:  "$.foo.bar",
 			},
 			isErrorWanted: false,
 		},
@@ -67,7 +67,7 @@ func Test_Validate(t *testing.T) {
 					"/tmp/test.yaml",
 					"/tmp/bar.yaml",
 				},
-				Key: "foo.bar",
+				Key: "$.foo.bar",
 			},
 			isErrorWanted: false,
 		},
@@ -76,7 +76,7 @@ func Test_Validate(t *testing.T) {
 			spec: Spec{
 				File:  "",
 				Files: []string{},
-				Key:   "foo.bar",
+				Key:   "$.foo.bar",
 			},
 			isErrorWanted: true,
 		},
@@ -95,7 +95,7 @@ func Test_Validate(t *testing.T) {
 				Files: []string{
 					"bar.yaml",
 				},
-				Key: "foo.bar",
+				Key: "$.foo.bar",
 			},
 			isErrorWanted: true,
 		},
@@ -106,7 +106,7 @@ func Test_Validate(t *testing.T) {
 					"test.yaml",
 					"test.yaml",
 				},
-				Key: "foo.bar",
+				Key: "$.foo.bar",
 			},
 			isErrorWanted: true,
 		},
@@ -122,7 +122,7 @@ func Test_Validate(t *testing.T) {
 			name: "Validation error when both 'Key' and 'Keys' are specified",
 			spec: Spec{
 				File: "/tmp/test.yaml",
-				Key:  "foo.bar",
+				Key:  "$.foo.bar",
 				Keys: []string{"baz.qux"},
 			},
 			isErrorWanted: true,

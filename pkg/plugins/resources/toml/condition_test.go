@@ -19,35 +19,34 @@ func TestCondition(t *testing.T) {
 		wantErr          bool
 	}{
 		{
-			name: "Deprecated - Default successful multiple update workflow",
+			name: "Default successful multiple update workflow",
 			spec: Spec{
-				File:     "testdata/data.toml",
-				Key:      ".employees.[*].role",
-				Multiple: true,
+				File: "testdata/data.toml",
+				Key:  "employees.map(role)...",
 			},
 			expectedResult: false,
 		},
 		{
 			name: "Default successful multiple update workflow",
 			spec: Spec{
-				File:  "testdata/data.toml",
-				Query: ".employees.[*].role",
+				File: "testdata/data.toml",
+				Key:  "employees.map(role)...",
 			},
 			expectedResult: false,
 		},
 		{
 			name: "Successful conditional multiple update workflow",
 			spec: Spec{
-				File:  "testdata/data.toml",
-				Query: ".employees.(address=AU).role",
+				File: "testdata/data.toml",
+				Key:  "employees.filter((address ?? \"\") == \"AU\").map(role)...",
 			},
 			expectedResult: false,
 		},
 		{
 			name: "Successful multiple map update workflow",
 			spec: Spec{
-				File:  "testdata/data.toml",
-				Query: ".benefits.[0].country.(country=UK).name",
+				File: "testdata/data.toml",
+				Key:  "benefits[0].country.filter(country == \"UK\").map(name)...",
 			},
 			expectedResult: false,
 		},
@@ -55,7 +54,7 @@ func TestCondition(t *testing.T) {
 			name: "Default scenario",
 			spec: Spec{
 				File:  "testdata/data.toml",
-				Key:   ".owner.firstName",
+				Key:   "owner.firstName",
 				Value: "Jack",
 			},
 			expectedResult: true,
@@ -64,18 +63,18 @@ func TestCondition(t *testing.T) {
 			name: "Default successful workflow with empty result",
 			spec: Spec{
 				File:  "testdata/data.toml",
-				Key:   ".owner.surname",
+				Key:   "owner.surname",
 				Value: "",
 			},
 			expectedResult: true,
 		},
 		{
-			name: "Default scenario with Dasel v2",
+			name: "Default scenario with Dasel v3",
 			spec: Spec{
 				File:   "testdata/data.toml",
-				Key:    ".owner.firstName",
+				Key:    "owner.firstName",
 				Value:  "Jack",
-				Engine: strPtr(ENGINEDASEL_V2),
+				Engine: strPtr(ENGINEDASEL_V3),
 			},
 			expectedResult: true,
 		},
@@ -113,23 +112,23 @@ func TestCondition(t *testing.T) {
 			name: "Test key do not exist",
 			spec: Spec{
 				File:  "testdata/data.toml",
-				Key:   ".doNotExist",
+				Key:   "doNotExist",
 				Value: "",
 			},
 			expectedResult:   false,
 			wantErr:          true,
-			expectedErrorMsg: errors.New("could not find value for query \".doNotExist\" from file \"testdata/data.toml\""),
+			expectedErrorMsg: errors.New("map key not found"),
 		},
 		{
 			name: "Test key do not exist",
 			spec: Spec{
 				File:  "testdata/data.toml",
-				Query: ".doNotExist.[*]",
+				Key:   "doNotExist...",
 				Value: "",
 			},
 			expectedResult:   false,
 			wantErr:          true,
-			expectedErrorMsg: errors.New("could not find multiple value for query \".doNotExist.[*]\" from file \"testdata/data.toml\""),
+			expectedErrorMsg: errors.New("map key not found"),
 		},
 	}
 
@@ -143,7 +142,7 @@ func TestCondition(t *testing.T) {
 			gotResult, _, gotErr := toml.Condition(context.Background(), "", nil)
 
 			if tt.wantErr {
-				assert.Equal(t, tt.expectedErrorMsg.Error(), gotErr.Error())
+				require.ErrorContains(t, gotErr, tt.expectedErrorMsg.Error())
 			} else {
 				require.NoError(t, gotErr)
 			}

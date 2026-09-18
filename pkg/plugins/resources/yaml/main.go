@@ -253,13 +253,10 @@ func New(spec interface{}) (*Yaml, error) {
 		contentRetriever: &text.Text{},
 	}
 
-	if newResource.spec.Key != "" {
-		newResource.spec.Key = sanitizeYamlPathKey(newResource.spec.Key)
-	}
-
-	// Sanitize all keys in the Keys slice
-	for i, key := range newResource.spec.Keys {
-		newResource.spec.Keys[i] = sanitizeYamlPathKey(key)
+	for _, key := range append([]string{newSpec.Key}, newSpec.Keys...) {
+		if key != "" && (!strings.HasPrefix(key, "$") || strings.Contains(key, `\.`)) {
+			return nil, fmt.Errorf("legacy YAML key %q was removed in v1; use an explicit JSONPath starting with $ and quote dotted field names", key)
+		}
 	}
 
 	err = newResource.spec.Validate()

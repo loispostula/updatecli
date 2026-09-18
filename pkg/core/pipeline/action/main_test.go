@@ -20,7 +20,8 @@ func Test_Validate(t *testing.T) {
 			wantErrMessage: `missing value for parameter(s) ["kind,scmid"]`,
 		},
 		{
-			name: "Passing case with 'Kind' set to lowercase",
+			name:           "Reject mixed-case kind",
+			wantErrMessage: `kind value "GitHub/PullRequest" must be lowercase`,
 			config: Config{
 				Kind:  "GitHub/PullRequest",
 				ScmID: "default",
@@ -31,30 +32,8 @@ func Test_Validate(t *testing.T) {
 			},
 		},
 		{
-			name: "Passing case with 'DeprecatedScmID' set to 'ScmID' instead",
-			config: Config{
-				Kind:            "github/pullrequest",
-				DeprecatedScmID: "default",
-			},
-			wantConfig: Config{
-				Kind:  "github/pullrequest",
-				ScmID: "default",
-			},
-		},
-		{
-			name: "Passing case with both 'DeprecatedScmID' and 'ScmID' set. 'ScmID' should be used",
-			config: Config{
-				Kind:            "github/pullrequest",
-				ScmID:           "used",
-				DeprecatedScmID: "ignored",
-			},
-			wantConfig: Config{
-				Kind:  "github/pullrequest",
-				ScmID: "used",
-			},
-		},
-		{
-			name: "Passing case with 'Kind: github' set to 'github/pullrequest'",
+			name:           "Reject removed github action kind",
+			wantErrMessage: `action kind "github" was removed in v1; use github/pullrequest`,
 			config: Config{
 				Kind:  "github",
 				ScmID: "default",
@@ -65,7 +44,8 @@ func Test_Validate(t *testing.T) {
 			},
 		},
 		{
-			name: "Passing case with 'Kind: gitea' set to 'gitea/pullrequest'",
+			name:           "Reject removed gitea action kind",
+			wantErrMessage: `action kind "gitea" was removed in v1; use gitea/pullrequest`,
 			config: Config{
 				Kind:  "gitea",
 				ScmID: "default",

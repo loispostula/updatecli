@@ -10,6 +10,12 @@ import (
 )
 
 var (
+	applyCommit           bool
+	applyClean            bool
+	applyPush             bool
+	applyCleanGitBranches bool
+	applyExistingOnly     bool
+
 	pipelineApplyCmd = &cobra.Command{
 		/*
 			Technically speaking we could have multiple policies to apply from the command line

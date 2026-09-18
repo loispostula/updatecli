@@ -34,7 +34,7 @@ sources:
     kind: json
     spec:
       file: https://www.updatecli.io/schema/latest/config.json
-      key: '["$id"]'
+      key: 'get("$id")'
       engine: dasel
 conditions:
   local:

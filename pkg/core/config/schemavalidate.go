@@ -20,9 +20,6 @@ type SchemaValidationOptions struct {
 	// Strict reports as errors what is otherwise only a warning, and disables the
 	// filters hiding the checks Updatecli cannot perform reliably.
 	Strict bool
-	// AllowDeprecated reports a deprecated but still accepted key as a warning rather
-	// than as an unknown key.
-	AllowDeprecated bool
 	// SkipTemplatedValues ignores the value of a field still holding a go template, as
 	// those are only resolved once the pipeline runs.
 	SkipTemplatedValues bool
@@ -31,7 +28,6 @@ type SchemaValidationOptions struct {
 // DefaultSchemaValidationOptions returns the options used unless told otherwise.
 func DefaultSchemaValidationOptions() SchemaValidationOptions {
 	return SchemaValidationOptions{
-		AllowDeprecated:     true,
 		SkipTemplatedValues: true,
 	}
 }
@@ -234,7 +230,7 @@ func (v *schemaValidator) flatten(err *validator.ValidationError, path string, n
 
 	location := joinPath(path, err.InstanceLocation)
 
-	severity, message := v.describe(err, location, node, schema)
+	severity, message := v.describe(err, node, schema)
 	if message == "" {
 		return
 	}
@@ -244,17 +240,12 @@ func (v *schemaValidator) flatten(err *validator.ValidationError, path string, n
 
 // describe turns a validation failure into an Updatecli flavored message, and drops the
 // ones Updatecli cannot check reliably.
-func (v *schemaValidator) describe(err *validator.ValidationError, location string, node string, schema *validator.Schema) (Severity, string) {
+func (v *schemaValidator) describe(err *validator.ValidationError, node string, schema *validator.Schema) (Severity, string) {
 	switch errorKind := err.ErrorKind.(type) {
 
 	case *kind.AdditionalProperties:
 		messages := []string{}
 		for _, property := range errorKind.Properties {
-			if replacement, ok := v.registry.deprecatedKey(node, property); ok && v.options.AllowDeprecated {
-				v.report(v.deprecationSeverity(), joinKey(location, property),
-					"%q is deprecated in favor of %q", property, replacement)
-				continue
-			}
 			messages = append(messages, fmt.Sprintf("unknown key %q%s",
 				property, suggest(property, propertyNames(schema, err.InstanceLocation))))
 		}
@@ -290,14 +281,6 @@ func (v *schemaValidator) describe(err *validator.ValidationError, location stri
 	default:
 		return SeverityError, err.ErrorKind.LocalizedString(nil)
 	}
-}
-
-func (v *schemaValidator) deprecationSeverity() Severity {
-	if v.options.Strict {
-		return SeverityError
-	}
-
-	return SeverityWarning
 }
 
 // requiredSeverity decides how much a missing key matters.

@@ -612,7 +612,7 @@ github:
 				Files: []string{
 					"test.yaml",
 				},
-				Key:    "repos[?(@.repository == 'website')].owner",
+				Key:    "$.repos[?(@.repository == 'website')].owner",
 				Value:  "updatecli",
 				Engine: "yamlpath",
 			},

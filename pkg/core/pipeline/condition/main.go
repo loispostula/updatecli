@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -35,8 +36,6 @@ type Condition struct {
 // Config defines conditions input parameters
 type Config struct {
 	resource.ResourceConfig `yaml:",inline,omitempty"`
-	// ! Deprecated in favor of sourceID
-	DeprecatedSourceID string `yaml:"sourceID,omitempty" jsonschema:"-"`
 	// sourceid specifies which "source", based on its ID, is used to retrieve the default value.
 	SourceID string `yaml:",omitempty"`
 	// disablesourceinput disable the mechanism to retrieve a default value from a source.
@@ -140,47 +139,7 @@ func (c *Config) Validate() error {
 
 	// Ensure kind is lowercase
 	if c.Kind != strings.ToLower(c.Kind) {
-		logrus.Warningf("kind value %q must be lowercase", c.Kind)
-		c.Kind = strings.ToLower(c.Kind)
-	}
-
-	// Handle scmID deprecation
-	if len(c.DeprecatedSCMID) > 0 {
-		switch len(c.SCMID) {
-		case 0:
-			logrus.Warningf("%q is deprecated in favor of %q.", "scmID", "scmid")
-			c.SCMID = c.DeprecatedSCMID
-			c.DeprecatedSCMID = ""
-		default:
-			logrus.Warningf("%q and %q are mutually exclusive, ignoring %q",
-				"scmID", "scmid", "scmID")
-		}
-	}
-
-	// Handle depends_on deprecation
-	if len(c.DeprecatedDependsOn) > 0 {
-		switch len(c.DependsOn) == 0 {
-		case true:
-			logrus.Warningln("\"depends_on\" is deprecated in favor of \"dependson\".")
-			c.DependsOn = c.DeprecatedDependsOn
-			c.DeprecatedDependsOn = []string{}
-		case false:
-			logrus.Warningln("\"depends_on\" is ignored in favor of \"dependson\".")
-			c.DeprecatedDependsOn = []string{}
-		}
-	}
-
-	// Handle sourceID deprecation
-	if len(c.DeprecatedSourceID) > 0 {
-		switch len(c.SourceID) {
-		case 0:
-			logrus.Warningf("%q is deprecated in favor of %q.", "sourceID", "sourceid")
-			c.SourceID = c.DeprecatedSourceID
-			c.DeprecatedSourceID = ""
-		default:
-			logrus.Warningf("%q and %q are mutually exclusive, ignoring %q",
-				"sourceID", "sourceid", "sourceID")
-		}
+		return fmt.Errorf("kind value %q must be lowercase", c.Kind)
 	}
 
 	err := c.Transformers.Validate()

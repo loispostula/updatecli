@@ -22,7 +22,7 @@ func TestCondition(t *testing.T) {
 			name: "Default scenario",
 			spec: Spec{
 				File:  "testdata/data.csv",
-				Key:   ".[0].firstname",
+				Key:   "$this[0].firstname",
 				Value: "John",
 			},
 			expectedResult: true,
@@ -30,10 +30,9 @@ func TestCondition(t *testing.T) {
 		{
 			name: "Deprecated Multiple query scenario",
 			spec: Spec{
-				File:     "testdata/data.csv",
-				Key:      ".[*].firstname",
-				Value:    "John",
-				Multiple: true,
+				File:  "testdata/data.csv",
+				Key:   "map(firstname)...",
+				Value: "John",
 			},
 			expectedResult: false,
 		},
@@ -41,7 +40,7 @@ func TestCondition(t *testing.T) {
 			name: "Query scenario",
 			spec: Spec{
 				File:  "testdata/data.csv",
-				Query: ".[*].firstname",
+				Key:   "map(firstname)...",
 				Value: "John",
 			},
 			expectedResult: false,
@@ -50,7 +49,7 @@ func TestCondition(t *testing.T) {
 			name: "Multiple query scenario",
 			spec: Spec{
 				File:  "testdata/data.csv",
-				Query: ".[*].surname",
+				Key:   "map(surname)...",
 				Value: "",
 			},
 			expectedResult: false,
@@ -59,7 +58,7 @@ func TestCondition(t *testing.T) {
 			name: "Default scenario 2",
 			spec: Spec{
 				File:  "testdata/data.2.csv",
-				Key:   ".[0].firstname",
+				Key:   "$this[0].firstname",
 				Comma: ';',
 				Value: "John",
 			},
@@ -69,18 +68,18 @@ func TestCondition(t *testing.T) {
 			name: "Default successful workflow with empty result",
 			spec: Spec{
 				File:  "testdata/data.csv",
-				Key:   ".[0].surname",
+				Key:   "$this[0].surname",
 				Value: "",
 			},
 			expectedResult: true,
 		},
 		{
-			name: "Default scenario with Dasel v2",
+			name: "Default scenario with Dasel v3",
 			spec: Spec{
 				File:   "testdata/data.csv",
-				Key:    ".[0].firstname",
+				Key:    "$this[0].firstname",
 				Value:  "John",
-				Engine: strPtr(ENGINEDASEL_V2),
+				Engine: strPtr(ENGINEDASEL_V3),
 			},
 			expectedResult: true,
 		},
@@ -108,12 +107,12 @@ func TestCondition(t *testing.T) {
 			name: "Test key do not exist",
 			spec: Spec{
 				File:  "testdata/data.csv",
-				Key:   ".doNotExist",
+				Key:   "$this[0].doNotExist",
 				Value: "",
 			},
 			expectedResult:   false,
 			wantErr:          true,
-			expectedErrorMsg: errors.New("running query: could not find value for query \".doNotExist\" from file \"testdata/data.csv\""),
+			expectedErrorMsg: errors.New("map key not found"),
 		},
 	}
 
@@ -128,7 +127,7 @@ func TestCondition(t *testing.T) {
 
 			if tt.wantErr {
 				require.Error(t, gotErr)
-				assert.Equal(t, tt.expectedErrorMsg.Error(), gotErr.Error())
+				require.ErrorContains(t, gotErr, tt.expectedErrorMsg.Error())
 				return
 			}
 

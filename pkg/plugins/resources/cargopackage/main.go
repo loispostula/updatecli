@@ -65,19 +65,6 @@ func New(spec interface{}, isSCM bool) (*CargoPackage, error) {
 		return nil, err
 	}
 
-	if newSpec.IndexUrl != "" {
-		logrus.Infof("IndexURL IS SET, but not used")
-		switch newSpec.Registry.URL != "" {
-		case true:
-			logrus.Warningf("Registry.URL and IndexUrl are mutually exclusive, unset indexurl")
-			newSpec.IndexUrl = ""
-		case false:
-			logrus.Warningf("indexurl is deprecated in favor of registry.url")
-			newSpec.Registry.URL = newSpec.IndexUrl
-			newSpec.IndexUrl = ""
-		}
-	}
-
 	if !newSpec.Registry.Validate() {
 		return nil, fmt.Errorf("invalid registry configuration")
 	}
@@ -235,7 +222,6 @@ func (cp *CargoPackage) getPackageData(ctx context.Context) (PackageData, error)
 // to identify the resource without any sensitive information or context specific data.
 func (cp *CargoPackage) ReportConfig() interface{} {
 	return Spec{
-		IndexUrl: cp.spec.IndexUrl,
 		Registry: cp.spec.Registry,
 		Package:  cp.spec.Package,
 		Version:  cp.spec.Version,

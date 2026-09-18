@@ -29,7 +29,7 @@ func TestSource(t *testing.T) {
 			name: "Default successful workflow",
 			spec: Spec{
 				File: "testdata/data.toml",
-				Key:  ".owner.firstName",
+				Key:  "owner.firstName",
 			},
 			expectedResult: "Jack",
 		},
@@ -37,7 +37,7 @@ func TestSource(t *testing.T) {
 			name: "Default successful workflow with empty result",
 			spec: Spec{
 				File: "testdata/data.toml",
-				Key:  ".owner.surname",
+				Key:  "owner.surname",
 			},
 			expectedResult: "",
 		},
@@ -45,26 +45,26 @@ func TestSource(t *testing.T) {
 			name: "Test key do not exist",
 			spec: Spec{
 				File:  "testdata/data.toml",
-				Key:   ".doNotExist",
+				Key:   "doNotExist",
 				Value: "",
 			},
 			expectedResult:   "",
 			wantErr:          true,
-			expectedErrorMsg: errors.New("cannot find value for path \".doNotExist\" from file \"testdata/data.toml\""),
+			expectedErrorMsg: errors.New("cannot find value for path \"doNotExist\" from file \"testdata/data.toml\""),
 		},
 		{
 			name: "Test array exist",
 			spec: Spec{
 				File: "testdata/data.toml",
-				Key:  ".database.ports.[1]",
+				Key:  "database.ports[1]",
 			},
 			expectedResult: "8001",
 		},
 		{
 			name: "Test Query exist",
 			spec: Spec{
-				File:  "testdata/data.toml",
-				Query: ".employees.[*].role",
+				File: "testdata/data.toml",
+				Key:  "employees.map(role)...",
 				VersionFilter: version.Filter{
 					Kind:    "regex",
 					Pattern: "I(.*)",
@@ -73,20 +73,20 @@ func TestSource(t *testing.T) {
 			expectedResult: "IC",
 		},
 		{
-			name: "Default successful workflow with Dasel v2",
+			name: "Default successful workflow with Dasel v3",
 			spec: Spec{
 				File:   "testdata/data.toml",
-				Key:    ".owner.firstName",
-				Engine: strPtr(ENGINEDASEL_V2),
+				Key:    "owner.firstName",
+				Engine: strPtr(ENGINEDASEL_V3),
 			},
 			expectedResult: "Jack",
 		},
 		{
-			name: "Array item with Dasel v2",
+			name: "Array item with Dasel v3",
 			spec: Spec{
 				File:   "testdata/data.toml",
-				Key:    ".database.ports.[1]",
-				Engine: strPtr(ENGINEDASEL_V2),
+				Key:    "database.ports[1]",
+				Engine: strPtr(ENGINEDASEL_V3),
 			},
 			expectedResult: "8001",
 		},
@@ -172,7 +172,7 @@ func TestSource(t *testing.T) {
 			err = j.Source(context.Background(), "", &gotResult)
 
 			if tt.wantErr {
-				assert.Equal(t, tt.expectedErrorMsg.Error(), err.Error())
+				require.ErrorContains(t, err, tt.expectedErrorMsg.Error())
 			} else {
 				require.NoError(t, err)
 			}

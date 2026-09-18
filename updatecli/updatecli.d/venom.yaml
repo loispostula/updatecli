@@ -5,7 +5,8 @@ actions:
     title: 'ci: bump Venom version to {{ source "latestVersion" }}'
     kind: github/pullrequest
     spec:
-      automerge: true
+      merge:
+        strategy: auto
       labels:
         - chore
         - skip-changelog

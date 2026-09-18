@@ -83,12 +83,6 @@ type ResourceConfig struct {
 	Spec interface{} `yaml:",omitempty"`
 	// scmid specifies the scm configuration key associated to the current resource
 	SCMID string `yaml:",omitempty"` // SCMID references a uniq scm configuration
-	//!deprecated, please use scmid
-	//DeprecatedSCMID is kept for backward compatibility
-	DeprecatedSCMID string `yaml:"scmID,omitempty" jsonschema:"-"`
-	//!deprecated, please use dependson
-	//DeprecatedDependsOn is kept for backward compatibility
-	DeprecatedDependsOn []string `yaml:"depends_on,omitempty" jsonschema:"-"`
 }
 
 // New returns a newly initialized Resource or an error

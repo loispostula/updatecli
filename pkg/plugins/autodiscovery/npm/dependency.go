@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"path"
 	"path/filepath"
-	"strings"
 	"text/template"
 
 	"github.com/sirupsen/logrus"
@@ -206,7 +205,7 @@ func (n Npm) discoverDependencyManifests() ([][]byte, error) {
 					TargetName:                 fmt.Sprintf("Bump %q package version to {{ source \"npm\" }}", dependencyName),
 					// NPM package allows dot in package name which has a different meaning in Dasel query
 					// Therefor we must escape it for Dasel query to work
-					TargetKey:                fmt.Sprintf("%s.%s", dependencyType, strings.ReplaceAll(dependencyName, ".", `\.`)),
+					TargetKey:                fmt.Sprintf("get(%q).get(%q)", dependencyType, dependencyName),
 					TargetPackageJsonEnabled: !lockSupport.yarn && !lockSupport.pnpm && !lockSupport.npm,
 					TargetYarnCleanupEnabled: lockSupport.yarn,
 					TargetPnpmCleanupEnabled: lockSupport.pnpm,

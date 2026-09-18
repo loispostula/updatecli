@@ -25,45 +25,44 @@ func TestTarget(t *testing.T) {
 		{
 			name: "Deprecated multiple Test key do not exist",
 			spec: Spec{
-				File:     "testdata/data.toml",
-				Key:      ".doNotExist.[*]",
-				Value:    "",
-				Multiple: true,
-			},
-			expectedResult:   false,
-			sourceInput:      "M",
-			wantErr:          true,
-			expectedErrorMsg: errors.New("could not find multiple value for query \".doNotExist.[*]\" from file \"testdata/data.toml\""),
-		},
-		{
-			name: "Test key do not exist",
-			spec: Spec{
 				File:  "testdata/data.toml",
-				Query: ".doNotExist.[*]",
+				Key:   "doNotExist...",
 				Value: "",
 			},
 			expectedResult:   false,
 			sourceInput:      "M",
 			wantErr:          true,
-			expectedErrorMsg: errors.New("could not find multiple value for query \".doNotExist.[*]\" from file \"testdata/data.toml\""),
+			expectedErrorMsg: errors.New("map key not found"),
 		},
 		{
 			name: "Test key do not exist",
 			spec: Spec{
 				File:  "testdata/data.toml",
-				Key:   ".doNotExist",
+				Key:   "doNotExist...",
 				Value: "",
 			},
 			expectedResult:   false,
 			sourceInput:      "M",
 			wantErr:          true,
-			expectedErrorMsg: errors.New("could not find value for query \".doNotExist\" from file \"testdata/data.toml\""),
+			expectedErrorMsg: errors.New("map key not found"),
+		},
+		{
+			name: "Test key do not exist",
+			spec: Spec{
+				File:  "testdata/data.toml",
+				Key:   "doNotExist",
+				Value: "",
+			},
+			expectedResult:   false,
+			sourceInput:      "M",
+			wantErr:          true,
+			expectedErrorMsg: errors.New("map key not found"),
 		},
 		{
 			name: "Default successful multiple update workflow",
 			spec: Spec{
-				File:  "testdata/data.toml",
-				Query: ".employees.[*].role",
+				File: "testdata/data.toml",
+				Key:  "employees.map(role)...",
 			},
 			sourceInput:    "M",
 			expectedResult: true,
@@ -71,8 +70,8 @@ func TestTarget(t *testing.T) {
 		{
 			name: "Successful conditional multiple update workflow",
 			spec: Spec{
-				File:  "testdata/data.toml",
-				Query: ".employees.(address=AU).role",
+				File: "testdata/data.toml",
+				Key:  "employees.filter((address ?? \"\") == \"AU\").map(role)...",
 			},
 			sourceInput:    "M",
 			expectedResult: false,
@@ -80,8 +79,8 @@ func TestTarget(t *testing.T) {
 		{
 			name: "Successful multiple map update workflow",
 			spec: Spec{
-				File:  "testdata/data.toml",
-				Query: ".benefits.[0].country.(country=UK).name",
+				File: "testdata/data.toml",
+				Key:  "benefits[0].country.filter(country == \"UK\").map(name)...",
 			},
 			sourceInput:    "all",
 			expectedResult: true,
@@ -90,7 +89,7 @@ func TestTarget(t *testing.T) {
 			name: "Successful single update workflow",
 			spec: Spec{
 				File: "testdata/data.toml",
-				Key:  ".owner.firstName",
+				Key:  "owner.firstName",
 			},
 			sourceInput:    "Tom",
 			expectedResult: true,
@@ -99,7 +98,7 @@ func TestTarget(t *testing.T) {
 			name: "Successful no update workflow",
 			spec: Spec{
 				File: "testdata/data.toml",
-				Key:  ".owner.firstName",
+				Key:  "owner.firstName",
 			},
 			sourceInput:    "Jack",
 			expectedResult: false,
@@ -108,22 +107,12 @@ func TestTarget(t *testing.T) {
 			name: "Failing on non-existing key by default",
 			spec: Spec{
 				File: "testdata/data.toml",
-				Key:  ".owner.age",
+				Key:  "owner.age",
 			},
 			sourceInput:      "50",
 			expectedResult:   false,
 			wantErr:          true,
-			expectedErrorMsg: errors.New("could not find value for query \".owner.age\" from file \"testdata/data.toml\""),
-		},
-		{
-			name: "Successful update on non-existing key",
-			spec: Spec{
-				File:             "testdata/data.toml",
-				Key:              ".owner.age",
-				CreateMissingKey: true,
-			},
-			sourceInput:    "50",
-			expectedResult: true,
+			expectedErrorMsg: errors.New("map key not found"),
 		},
 		{
 			name: "Successful single update workflow with Dasel v3",
@@ -169,7 +158,7 @@ func TestTarget(t *testing.T) {
 			err = j.Target(context.Background(), tt.sourceInput, nil, true, &gotResult)
 
 			if tt.wantErr {
-				assert.Equal(t, tt.expectedErrorMsg.Error(), err.Error())
+				require.ErrorContains(t, err, tt.expectedErrorMsg.Error())
 			} else {
 				require.NoError(t, err)
 			}

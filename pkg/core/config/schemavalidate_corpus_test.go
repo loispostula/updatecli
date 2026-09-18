@@ -2,7 +2,6 @@ package config
 
 import (
 	"bytes"
-	"fmt"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -41,7 +40,7 @@ func corpusManifests(t *testing.T) []string {
 			// The manifests under "invalid.d" deliberately break the schema, they are the
 			// fixtures checking that 'updatecli manifest validate' rejects a bad manifest.
 			if entry.IsDir() {
-				if entry.Name() == invalidManifestDir {
+				if entry.Name() == invalidManifestDir || entry.Name() == "deprecated.d" {
 					return filepath.SkipDir
 				}
 				return nil
@@ -139,25 +138,16 @@ func TestCorpusValidatesWithoutError(t *testing.T) {
 	}
 }
 
-// TestCorpusReportsDeprecationsAsWarnings pins that a manifest using a deprecated but
-// still accepted keyword is reported without being rejected.
-func TestCorpusReportsDeprecationsAsWarnings(t *testing.T) {
-
-	deprecated := filepath.Join("..", "..", "..", "e2e", "updatecli.d", "deprecated.d")
-
-	content, err := os.ReadFile(filepath.Join(deprecated, "githubPullrequest.yaml"))
-	require.NoError(t, err)
-
-	report, err := ValidateSchema("githubPullrequest.yaml", content, DefaultSchemaValidationOptions())
-	require.NoError(t, err)
-
-	require.Emptyf(t, report.Errors(), "a deprecated manifest must not be rejected:\n%s", report.Error())
-
-	warnings := []string{}
-	for _, problem := range report.Warnings() {
-		warnings = append(warnings, problem.String())
+func TestCorpusRejectsRemovedSettings(t *testing.T) {
+	for _, name := range []string{"githubPullrequest.yaml", "json.yaml", "transformers.yaml"} {
+		t.Run(name, func(t *testing.T) {
+			content, err := os.ReadFile(filepath.Join("..", "..", "..", "e2e", "updatecli.d", "deprecated.d", name))
+			require.NoError(t, err)
+			var specs []Spec
+			require.ErrorContains(t, unmarshalConfigSpec(content, &specs), "removed in v1")
+			report, err := ValidateSchema(name, content, DefaultSchemaValidationOptions())
+			require.NoError(t, err)
+			require.NotEmpty(t, report.Errors())
+		})
 	}
-
-	require.NotEmpty(t, warnings, "the deprecated 'pullrequests' keyword must be reported")
-	fmt.Println(strings.Join(warnings, "\n"))
 }

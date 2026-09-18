@@ -93,6 +93,7 @@ jobs:
         run: |
           rm -f ${HOME}/.docker/config.json
   dispatch:
+    if: ${{ !contains(github.ref_name, '-') && !github.event.repository.fork }}
     needs: build
     strategy:
       matrix:

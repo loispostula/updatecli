@@ -14,11 +14,9 @@ import (
 )
 
 const (
-	DeprecatedKeyTagHash = "hash"
-	DeprecatedKeyTagName = "name"
-	KeyTagName           = "tagname"
-	KeyTagHash           = "taghash"
-	KeyTitle             = "title"
+	KeyTagName = "tagname"
+	KeyTagHash = "taghash"
+	KeyTitle   = "title"
 )
 
 // Spec defines a specification for a "gittag" resource
@@ -109,16 +107,14 @@ type Spec struct {
 	Tag string `yaml:",omitempty"`
 	// "key" defines the GitHub release information we are looking for.
 	// It accepts one of the following inputs:
-	//    * "name": returns the "latest" tag name
-	//    * "hash": returns the commit associated with the latest tag name
+	//    * "tagname": returns the "latest" tag name
+	//    * "taghash": returns the commit associated with the latest tag name
 	//    * "title": returns the latest release title
 	//
 	// accepted values:
 	//  * taghash
 	//  * tagname
 	//  * title
-	//  * hash (deprecated)
-	//  * name (deprecated)
 	//
 	// default: 'tagname'
 	//
@@ -159,17 +155,11 @@ func New(spec interface{}) (*GitHubRelease, error) {
 		logrus.Debugf("configuration \"key\" not set, defaulting to %q", KeyTagName)
 	case KeyTagHash, KeyTagName, KeyTitle:
 		// Nothing to do
-	case DeprecatedKeyTagName:
-		logrus.Warningf("configuration \"key\" set to %q is deprecated and should be replaced by %q", DeprecatedKeyTagName, KeyTagName)
-		newSpec.Key = KeyTagName
-	case DeprecatedKeyTagHash:
-		logrus.Warningf("configuration \"key\" set to %q is deprecated and should be replaced by %q", DeprecatedKeyTagHash, KeyTagHash)
-		newSpec.Key = KeyTagHash
 	default:
 		validationErrors = append(
 			validationErrors,
 			fmt.Sprintf(
-				"Value %q detected for key \"key\", accepted values for Key are 'name', %q, %q, %q, or empty.",
+				"Value %q detected for key \"key\", accepted values for Key are %q, %q, %q, or empty.",
 				newSpec.Key, KeyTagName, KeyTagHash, KeyTitle,
 			),
 		)

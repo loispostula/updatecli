@@ -172,7 +172,7 @@ foo: bar
 		},
 		{
 			name:             "Create a key holding a dot in its name",
-			spec:             Spec{File: "test.yaml", Key: `versions.1\.2`, CreateMissingKey: true},
+			spec:             Spec{File: "test.yaml", Key: `$.versions.'1.2'`, CreateMissingKey: true},
 			inputSourceValue: "v1",
 			mockedContent: `versions:
   a: 1

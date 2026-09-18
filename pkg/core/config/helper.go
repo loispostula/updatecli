@@ -138,14 +138,25 @@ func unmarshalConfigSpec(in []byte, out *[]Spec) error {
 	dec := yaml.NewDecoder(r)
 
 	for {
-		var s Spec
-		if err := dec.Decode(&s); err != nil {
+		var document yaml.Node
+		if err := dec.Decode(&document); err != nil {
 			if err == io.EOF {
 				break
 			}
 			return err
 		}
 
+		var raw map[string]interface{}
+		if err := document.Decode(&raw); err != nil {
+			return err
+		}
+		if err := validateRemovedSettings(raw); err != nil {
+			return err
+		}
+		var s Spec
+		if err := document.Decode(&s); err != nil {
+			return err
+		}
 		*out = append(*out, s)
 	}
 

@@ -1,15 +1,26 @@
 #!/usr/bin/env bash
-
-set -eux
+set -eu
 
 : "${VENOM_VAR_binpath:? Please set VENOM_VAR_binpath to updatecli binary dirname}"
 : "${VENOM_VAR_rootpath:=../..}"
 
-## In order for the Updatecli manifest to work, we must be at the root of the git repository 
-pushd "$VENOM_VAR_rootpath"
+cd "$VENOM_VAR_rootpath"
 
-# Test deprecated diff command (should show deprecation warning but still work)
-"$VENOM_VAR_binpath/updatecli" pipeline diff --config  e2e/updatecli.d/deprecated.d
+for command in apply diff prepare show; do
+  if output=$("$VENOM_VAR_binpath/updatecli" "$command" 2>&1); then
+    printf 'Removed command unexpectedly succeeded: %s\n' "$command"
+    exit 1
+  fi
+  [[ "$output" == *"unknown command"* ]]
+done
 
-# Test that deprecated diff command with valid xml config still works with a warning
-"$VENOM_VAR_binpath/updatecli" diff --config  e2e/updatecli.d/success.d/xml.yaml
+for manifest in githubPullrequest.yaml json.yaml transformers.yaml; do
+  if output=$("$VENOM_VAR_binpath/updatecli" --disable-version-check pipeline diff \
+    --config "e2e/updatecli.d/deprecated.d/$manifest" 2>&1); then
+    printf 'Removed manifest setting unexpectedly succeeded: %s\n' "$manifest"
+    exit 1
+  fi
+  [[ "$output" == *"removed in v1"* ]]
+done
+
+printf 'Removed interfaces rejected\n'

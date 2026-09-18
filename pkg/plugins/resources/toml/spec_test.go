@@ -17,18 +17,18 @@ func TestSpecValidate(t *testing.T) {
 			name: "valid default spec",
 			spec: Spec{
 				File: "testdata/data.toml",
-				Key:  ".owner.firstName",
+				Key:  "owner.firstName",
 			},
 			wantErr: false,
 		},
 		{
-			name: "createmissingkey allowed with default engine",
+			name: "createmissingkey rejected with default engine",
 			spec: Spec{
 				File:             "testdata/data.toml",
-				Key:              ".owner.age",
+				Key:              "owner.age",
 				CreateMissingKey: true,
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name: "createmissingkey rejected with dasel v3",
@@ -51,14 +51,14 @@ func TestSpecValidate(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "createmissingkey allowed with dasel v2",
+			name: "removed dasel v2 engine",
 			spec: Spec{
 				File:             "testdata/data.toml",
-				Key:              ".owner.age",
+				Key:              "owner.age",
 				CreateMissingKey: true,
-				Engine:           strPtr(ENGINEDASEL_V2),
+				Engine:           strPtr("dasel/v2"),
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 	}
 

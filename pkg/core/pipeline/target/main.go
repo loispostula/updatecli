@@ -46,8 +46,6 @@ type Config struct {
 	// default:
 	//   false
 	DependsOnChange bool `yaml:",omitempty"`
-	// ! Deprecated - please use all lowercase `sourceid`
-	DeprecatedSourceID string `yaml:"sourceID,omitempty" jsonschema:"-"`
 	// disablesourceinput disables the mechanism to retrieve a default value from a source.
 	// For example, if true, source information like changelog will not be accessible for a github/pullrequest action.
 	//
@@ -59,14 +57,6 @@ type Config struct {
 	// default:
 	//   if only one source is defined, then sourceid is set to that sourceid.
 	SourceID string `yaml:",omitempty"`
-	// ! Deprecated - please use DependsOn with `condition#conditionid` keys
-	//
-	// conditionids specifies the list of conditions to be evaluated before running the target.
-	// if at least one condition is not met, the target will be skipped.
-	//
-	// default:
-	//   by default, all conditions are evaluated.
-	DeprecatedConditionIDs []string `yaml:"conditionids,omitempty"`
 	// disableconditions disables the mechanism to evaluate all conditions before running the target.
 	//
 	// default:
@@ -252,7 +242,6 @@ func (Config) JSONSchema() *jschema.Schema {
 
 // Validate checks if a target configuration is valid
 func (c *Config) Validate() error {
-	// Handle scmID deprecation
 
 	gotError := false
 
@@ -263,63 +252,9 @@ func (c *Config) Validate() error {
 		missingParameters = append(missingParameters, "kind")
 	}
 
-	// Handle depends_on deprecation
-	if len(c.DeprecatedDependsOn) > 0 {
-		switch len(c.DependsOn) == 0 {
-		case true:
-			logrus.Warningln("\"depends_on\" is deprecated in favor of \"dependson\".")
-			c.DependsOn = c.DeprecatedDependsOn
-			c.DeprecatedDependsOn = []string{}
-		case false:
-			logrus.Warningln("\"depends_on\" is ignored in favor of \"dependson\".")
-			c.DeprecatedDependsOn = []string{}
-		}
-	}
-
 	// Ensure kind is lowercase
 	if c.Kind != strings.ToLower(c.Kind) {
-		logrus.Warningf("kind value %q must be lowercase", c.Kind)
-		c.Kind = strings.ToLower(c.Kind)
-	}
-
-	if len(c.DeprecatedSCMID) > 0 {
-		switch len(c.SCMID) {
-		case 0:
-			logrus.Warningf("%q is deprecated in favor of %q.", "scmID", "scmid")
-			c.SCMID = c.DeprecatedSCMID
-			c.DeprecatedSCMID = ""
-		default:
-			logrus.Warningf("%q and %q are mutually exclusive, ignoring %q",
-				"scmID", "scmid", "scmID")
-		}
-	}
-
-	// Handle sourceID deprecation
-	if len(c.DeprecatedSourceID) > 0 {
-		switch len(c.SourceID) {
-		case 0:
-			logrus.Warningf("%q is deprecated in favor of %q.", "sourceID", "sourceid")
-			c.SourceID = c.DeprecatedSourceID
-			c.DeprecatedSourceID = ""
-		default:
-			logrus.Warningf("%q and %q are mutually exclusive, ignoring %q",
-				"sourceID", "sourceid", "sourceID")
-		}
-	}
-
-	// Handle ConditionIDs deprecation
-	if len(c.DeprecatedConditionIDs) > 0 {
-		if len(c.DependsOn) > 0 {
-			logrus.Warningf("%q and %q are mutually exclusive, ignoring %q", "conditionids", "dependson", "conditionids")
-		} else {
-			logrus.Warningf("%q is deprecated in favor of %q", "conditionids", "dependson")
-			for _, condition := range c.DeprecatedConditionIDs {
-				logrus.Warningf("%q is deprecated in favor of %q: %s", "conditionids", "dependson", condition)
-				c.DependsOn = append(c.DependsOn, fmt.Sprintf("condition#%s", condition))
-			}
-			c.DeprecatedConditionIDs = []string{}
-			c.DisableConditions = true
-		}
+		return fmt.Errorf("kind value %q must be lowercase", c.Kind)
 	}
 
 	err := c.Transformers.Validate()

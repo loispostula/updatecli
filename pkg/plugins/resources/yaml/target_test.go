@@ -31,7 +31,7 @@ func Test_Target(t *testing.T) {
 				Files: []string{
 					"test.yaml",
 				},
-				Key:           "github.owner",
+				Key:           "$.github.owner",
 				Value:         "obiwankenobi",
 				Comment:       "comment that should be added",
 				Engine:        "yamlpath",
@@ -74,7 +74,7 @@ github:
 				Files: []string{
 					"test.yaml",
 				},
-				Key:     "github.owner",
+				Key:     "$.github.owner",
 				Value:   "obiwankenobi",
 				Comment: "comment that should be added",
 			},
@@ -115,7 +115,7 @@ github:
 				Files: []string{
 					"test.yaml",
 				},
-				Key:           "github.owner",
+				Key:           "$.github.owner",
 				Value:         "obiwankenobi",
 				Comment:       "comment that should be added",
 				DocumentIndex: ptrInt(1),
@@ -158,7 +158,7 @@ github:
 					"test.yaml",
 					"bar.yaml",
 				},
-				Key:     "github.owner",
+				Key:     "$.github.owner",
 				Value:   "obiwankenobi",
 				Comment: "comment that should be added",
 			},
@@ -238,7 +238,7 @@ annotations:
 			name: "Passing case with both input source and specified value (specified value should be used)",
 			spec: Spec{
 				File:  "test.yaml",
-				Key:   "github.owner",
+				Key:   "$.github.owner",
 				Value: "obiwankenobi",
 			},
 			files: map[string]file{
@@ -272,7 +272,7 @@ github:
 					"test.yaml",
 					"bar.yaml",
 				},
-				Key:   "github.owner",
+				Key:   "$.github.owner",
 				Value: "obiwankenobi",
 			},
 			files: map[string]file{
@@ -320,7 +320,7 @@ github:
 					"test.yaml",
 					"bar.yaml",
 				},
-				Key:   "github.owner",
+				Key:   "$.github.owner",
 				Value: "obiwankenobi",
 			},
 			files: map[string]file{
@@ -365,7 +365,7 @@ github:
 			name: "Validation failure with an https:// URL instead of a file",
 			spec: Spec{
 				File:  "https://github.com/foo.yaml",
-				Key:   "github.owner",
+				Key:   "$.github.owner",
 				Value: "obiwankenobi",
 			},
 			files: map[string]file{
@@ -381,7 +381,7 @@ github:
 			name: "Passing: file already up to date",
 			spec: Spec{
 				File: "test.yaml",
-				Key:  "github.owner",
+				Key:  "$.github.owner",
 			},
 			files: map[string]file{
 				"test.yaml": {
@@ -409,7 +409,7 @@ github:
 			name: "Provided key does not exist",
 			spec: Spec{
 				File:  "test.yaml",
-				Key:   "github.ship",
+				Key:   "$.github.ship",
 				Value: "obiwankenobi",
 			},
 			files: map[string]file{
@@ -433,7 +433,7 @@ github:
 			name: "Invalid YAML file",
 			spec: Spec{
 				File:  "test.yaml",
-				Key:   "github.ship",
+				Key:   "$.github.ship",
 				Value: "obiwankenobi",
 			},
 			files: map[string]file{
@@ -457,7 +457,7 @@ github:
 			name: "Passing case with a comment that is added",
 			spec: Spec{
 				File:    "test.yaml",
-				Key:     "github.owner",
+				Key:     "$.github.owner",
 				Value:   "obiwankenobi",
 				Comment: "comment that should be added",
 				Engine:  "yamlpath",
@@ -488,7 +488,7 @@ github:
 			name: "Passing case with a string that looks like a number",
 			spec: Spec{
 				File:  "melange.yaml",
-				Key:   "package.version",
+				Key:   "$.package.version",
 				Value: "0.8",
 			},
 			files: map[string]file{
@@ -516,7 +516,7 @@ package:
 			name: "Passing case with a string that starts with a @",
 			spec: Spec{
 				File:  "apko.yaml",
-				Key:   "contents.repositories",
+				Key:   "$.contents.repositories",
 				Value: "@local foo/0.1.2/packages",
 			},
 			files: map[string]file{
@@ -799,7 +799,7 @@ func Test_TargetFromSCM(t *testing.T) {
 			name: "Passing case with both input source and specified value (specified value should be used)",
 			spec: Spec{
 				File:  "test.yaml",
-				Key:   "github.owner",
+				Key:   "$.github.owner",
 				Value: "obiwankenobi",
 			},
 			files: map[string]file{
@@ -836,7 +836,7 @@ github:
 					"test.yaml",
 					"bar.yaml",
 				},
-				Key:   "github.owner",
+				Key:   "$.github.owner",
 				Value: "obiwankenobi",
 			},
 			files: map[string]file{
@@ -889,7 +889,7 @@ github:
 					"file://test.yaml",
 					"file://bar.yaml",
 				},
-				Key:   "github.owner",
+				Key:   "$.github.owner",
 				Value: "obiwankenobi",
 			},
 			files: map[string]file{

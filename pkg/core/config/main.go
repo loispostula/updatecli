@@ -130,10 +130,6 @@ type Spec struct {
 	// 	  	pattern: patch
 	// ---
 	AutoDiscovery autodiscovery.Config `yaml:",omitempty"`
-	// title is deprecated, please use "name" instead.
-	Title string `yaml:",omitempty" jsonschema:"-"`
-	// pullrequets is deprecated in favor of `actions`
-	PullRequests map[string]action.Config `yaml:",omitempty" jsonschema:"-"`
 	// "actions" defines the list of action configurations which need to be managed.
 	// They are triggered if any of the depending target is updated.
 	//
@@ -144,7 +140,7 @@ type Spec struct {
 	// 	  kind: github/pullrequest
 	// 	  scmid: default
 	// 	  spec:
-	// 	  	automerge: true
+	// 	  	merge: {strategy: auto}
 	// 	  	labels:
 	// 	  	  - "dependencies"
 	// ---
@@ -280,8 +276,6 @@ func (config *Config) SetManifestID(seed string) {
 }
 
 // New reads an updatecli configuration file
-//
-//nolint:funlen
 func New(option Option, pipelineIDFilters []string, pipelineLabels map[string]string) (configs []Config, err error) {
 	_, basename := filepath.Split(option.ManifestFile)
 
@@ -414,6 +408,13 @@ func New(option Option, pipelineIDFilters []string, pipelineLabels map[string]st
 	}
 
 	if isCue {
+		var raw map[string]interface{}
+		if err := cueManifest.Decode(&raw); err != nil {
+			return configs, err
+		}
+		if err := validateRemovedSettings(raw); err != nil {
+			return configs, err
+		}
 		var spec Spec
 		err = cueManifest.Decode(&spec)
 		if err != nil {
@@ -468,21 +469,6 @@ func New(option Option, pipelineIDFilters []string, pipelineLabels map[string]st
 		if err = config.EnsureLocalScm(); err != nil {
 			logrus.Errorf("No local scm configured %s", err)
 			continue
-		}
-
-		/** Check for deprecated directives **/
-		// pullrequests deprecated over actions
-		if len(config.Spec.PullRequests) > 0 {
-			if len(config.Spec.Actions) > 0 {
-				err := fmt.Errorf("the `pullrequests` and `actions` keywords are mutually exclusive. Please use only `actions` as `pullrequests` is deprecated")
-				logrus.Errorf("Skipping manifest %q:\n\t%s", option.ManifestFile, err.Error())
-				continue
-			}
-
-			logrus.Warningf("The `pullrequests` keyword is deprecated in favor of `actions`, please update this manifest. Updatecli will continue the execution while trying to translate `pullrequests` to `actions`.")
-
-			config.Spec.Actions = config.Spec.PullRequests
-			config.Spec.PullRequests = nil
 		}
 
 		if len(config.Spec.Name) == 0 {
@@ -701,23 +687,6 @@ func (config *Config) validateTargets() error {
 			}
 		}
 
-		if t.DisableConditions && len(t.DeprecatedConditionIDs) > 0 {
-			logrus.Errorf("target %q has 'disableconditions' set to true and 'conditionids' defined (%v), it's not possible to disable conditions and define conditions at the same time", id, t.DeprecatedConditionIDs)
-			return ErrBadConfig
-		}
-
-		undefinedConditions := []string{}
-		for _, conditionID := range t.DeprecatedConditionIDs {
-			if _, ok := config.Spec.Conditions[conditionID]; !ok {
-				undefinedConditions = append(undefinedConditions, conditionID)
-			}
-		}
-
-		if len(undefinedConditions) > 0 {
-			logrus.Errorf("target %q has undefined conditionids: %v", id, undefinedConditions)
-			return ErrBadConfig
-		}
-
 		// Only check/guess the sourceID if the user did not disable it (default is enabled)
 		if !t.DisableSourceInput {
 			// Try to guess SourceID
@@ -791,10 +760,6 @@ func (config *Config) Validate() error {
 		errs = append(
 			errs,
 			fmt.Errorf("updatecli version compatibility error:\n%s", err))
-	}
-
-	if config.Spec.Title != "" {
-		logrus.Warningf("title is deprecated, please use name instead")
 	}
 
 	err = config.validateConditions()

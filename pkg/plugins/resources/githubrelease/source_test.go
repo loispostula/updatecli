@@ -92,7 +92,7 @@ func TestGitHubRelease_Source(t *testing.T) {
 					{TagName: "3.0.0", TagCommit: github.TagCommit{Oid: "33333333"}},
 				},
 			},
-			releaseKey: "hash",
+			releaseKey: "taghash",
 			versionFilter: version.Filter{
 				Kind:    "latest",
 				Pattern: "latest",

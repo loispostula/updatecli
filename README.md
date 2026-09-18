@@ -90,6 +90,8 @@ Updatecli was built to work independently of the underlying dependencies to upda
 
 ## Installation
 
+Testing the v1 preparation branch? Read the [v1 migration guide](MIGRATING_V1.md) before upgrading.
+
 Updatecli is a Go binary available for Linux, MacOS and Windows from the [release page](https://github.com/updatecli/updatecli/releases) or installed via [other methods](https://www.updatecli.io/docs/prologue/installation/).
 
 **Verify File Checksum Signature**
@@ -133,7 +135,7 @@ The documentation of Updatecli is available at [www.updatecli.io](https://www.up
 
 This example is copy of the quickstart. You can also find it on [www.updatecli.io/docs/prologue/quick-start](https://www.updatecli.io/docs/prologue/quick-start/)
 
-We define an update strategy in "updatecli.yaml" then we run `updatecli apply --config updatecli.yaml`.
+We define an update strategy in "updatecli.yaml" then we run `updatecli pipeline apply --config updatecli.yaml`.
 Our objective is to know if the Jenkins project published a new stable version, if they build an appropriated docker image specifically for jdk11 and automatically update our infrastructure accordingly.
 
 <table>
@@ -174,7 +176,7 @@ conditions:
 targets:
   bumpJenkins:
     name: Update values.yaml to the latest Jenkins version
-    scmID: default
+    scmid: default
     kind: yaml
     spec:
       file: charts/jenkins/values.yaml
@@ -184,11 +186,12 @@ actions:
   default:
     title: Open a GitHub pull request with new Jenkins version
     kind: github/pullrequest
-    scmID: default
+    scmid: default
     target:
       - bumpJenkins
     spec:
-      automerge: true
+      merge:
+        strategy: auto
       mergemethod: squash
       labels:
         - dependencies

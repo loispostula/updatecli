@@ -29,7 +29,7 @@ func TestSource(t *testing.T) {
 			name: "Default successful workflow",
 			spec: Spec{
 				File:    "testdata/data.csv",
-				Key:     ".[0].firstname",
+				Key:     "$this[0].firstname",
 				Comma:   ',',
 				Comment: '#',
 			},
@@ -38,8 +38,8 @@ func TestSource(t *testing.T) {
 		{
 			name: "Regex versionFilter successful workflow",
 			spec: Spec{
-				File:  "testdata/data.csv",
-				Query: ".[*].firstname",
+				File: "testdata/data.csv",
+				Key:  "map(firstname)...",
 				VersionFilter: version.Filter{
 					Kind:    "regex",
 					Pattern: "^Jo",
@@ -51,7 +51,7 @@ func TestSource(t *testing.T) {
 			name: "Default successful workflow",
 			spec: Spec{
 				File:    "testdata/data.2.csv",
-				Key:     ".[0].firstname",
+				Key:     "$this[0].firstname",
 				Comma:   ';',
 				Comment: '#',
 			},
@@ -61,7 +61,7 @@ func TestSource(t *testing.T) {
 			name: "Default successful workflow with empty result",
 			spec: Spec{
 				File: "testdata/data.csv",
-				Key:  ".[0].surname",
+				Key:  "$this[0].surname",
 			},
 			expectedResult: "",
 		},
@@ -69,19 +69,19 @@ func TestSource(t *testing.T) {
 			name: "Test key do not exist",
 			spec: Spec{
 				File:  "testdata/data.csv",
-				Key:   ".doNotExist",
+				Key:   "$this[0].doNotExist",
 				Value: "",
 			},
 			expectedResult:   "",
 			wantErr:          true,
-			expectedErrorMsg: errors.New("cannot find value for path \".doNotExist\" from file \"testdata/data.csv\""),
+			expectedErrorMsg: errors.New("cannot find value for path \"$this[0].doNotExist\" from file \"testdata/data.csv\""),
 		},
 		{
-			name: "Default successful workflow with Dasel v2",
+			name: "Default successful workflow with Dasel v3",
 			spec: Spec{
 				File:   "testdata/data.csv",
-				Key:    ".[0].firstname",
-				Engine: strPtr(ENGINEDASEL_V2),
+				Key:    "$this[0].firstname",
+				Engine: strPtr(ENGINEDASEL_V3),
 			},
 			expectedResult: "John",
 		},
@@ -158,7 +158,7 @@ func TestSource(t *testing.T) {
 			err = c.Source(context.Background(), "", &gotResult)
 
 			if tt.wantErr {
-				assert.Equal(t, tt.expectedErrorMsg.Error(), err.Error())
+				require.ErrorContains(t, err, tt.expectedErrorMsg.Error())
 			} else {
 				require.NoError(t, err)
 			}

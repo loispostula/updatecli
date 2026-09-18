@@ -10,7 +10,8 @@ actions:
     title: 'deps: bump updatecli version to {{ source "latestVersion" }}'
     kind: github/pullrequest
     spec:
-      automerge: true
+      merge:
+        strategy: auto
       labels:
         - chore
         - skip-changelog

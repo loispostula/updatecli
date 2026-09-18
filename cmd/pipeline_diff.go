@@ -10,6 +10,8 @@ import (
 )
 
 var (
+	diffClean bool
+
 	pipelineDiffCmd = &cobra.Command{
 		Args:  cobra.MatchAll(cobra.MaximumNArgs(1)),
 		Use:   "diff NAME[:TAG|@DIGEST]",

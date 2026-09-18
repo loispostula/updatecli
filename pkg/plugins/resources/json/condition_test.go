@@ -22,18 +22,18 @@ func TestCondition(t *testing.T) {
 			name: "Default scenario",
 			spec: Spec{
 				File:  "testdata/data.json",
-				Key:   ".firstName",
+				Key:   "firstName",
 				Value: "Jack",
 			},
 			expectedResult: true,
 		},
 		{
-			name: "Default scenario with Dasel v2",
+			name: "Default scenario with Dasel v3",
 			spec: Spec{
 				File:   "testdata/data.json",
-				Key:    ".firstName",
+				Key:    "firstName",
 				Value:  "Jack",
-				Engine: strPtr(ENGINEDASEL_V2),
+				Engine: strPtr(ENGINEDASEL_V3),
 			},
 			expectedResult: true,
 		},
@@ -41,7 +41,7 @@ func TestCondition(t *testing.T) {
 			name: "Multiple key scenario",
 			spec: Spec{
 				File:  "testdata/data.json",
-				Query: "phoneNumbers.[0].type",
+				Key:   "phoneNumbers[0].type",
 				Value: "home",
 			},
 			expectedResult: true,
@@ -50,9 +50,9 @@ func TestCondition(t *testing.T) {
 			name: "Multiple key scenario",
 			spec: Spec{
 				File:   "testdata/data.json",
-				Key:    "phoneNumbers.[0].type",
+				Key:    "phoneNumbers[0].type",
 				Value:  "home",
-				Engine: strPtr(ENGINEDASEL_V2),
+				Engine: strPtr(ENGINEDASEL_V3),
 			},
 			expectedResult: true,
 		},
@@ -60,8 +60,8 @@ func TestCondition(t *testing.T) {
 			name: "Get last array item successful workflow",
 			spec: Spec{
 				File:   "testdata/data.json",
-				Key:    ".phoneNumbers.all().filter(equal(type,office)).number",
-				Engine: strPtr(ENGINEDASEL_V2),
+				Key:    "phoneNumbers.filter(type == \"office\").map(number)...",
+				Engine: strPtr(ENGINEDASEL_V3),
 				Value:  "646 555-4567",
 			},
 			expectedResult: true,
@@ -70,7 +70,7 @@ func TestCondition(t *testing.T) {
 			name: "Default successful workflow with empty result",
 			spec: Spec{
 				File:  "testdata/data.json",
-				Key:   ".surname",
+				Key:   "surname",
 				Value: "",
 			},
 			expectedResult: true,
@@ -109,23 +109,23 @@ func TestCondition(t *testing.T) {
 			name: "Test key do not exist",
 			spec: Spec{
 				File:  "testdata/data.json",
-				Key:   ".doNotExist",
+				Key:   "doNotExist",
 				Value: "",
 			},
 			expectedResult:   false,
 			wantErr:          true,
-			expectedErrorMsg: errors.New("could not find value for query \".doNotExist\" from file \"testdata/data.json\""),
+			expectedErrorMsg: errors.New("map key not found"),
 		},
 		{
 			name: "Test key do not exist",
 			spec: Spec{
 				File:  "testdata/data.json",
-				Query: ".doNotExist",
+				Key:   "doNotExist",
 				Value: "",
 			},
 			expectedResult:   false,
 			wantErr:          true,
-			expectedErrorMsg: errors.New("could not find multiple value for query \".doNotExist\" from file \"testdata/data.json\""),
+			expectedErrorMsg: errors.New("map key not found"),
 		},
 	}
 
@@ -139,7 +139,7 @@ func TestCondition(t *testing.T) {
 			got, _, gotErr := j.Condition(context.Background(), "", nil)
 
 			if tt.wantErr {
-				assert.Equal(t, tt.expectedErrorMsg.Error(), gotErr.Error())
+				require.ErrorContains(t, gotErr, tt.expectedErrorMsg.Error())
 			} else {
 				require.NoError(t, gotErr)
 			}

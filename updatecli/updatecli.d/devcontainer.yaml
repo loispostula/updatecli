@@ -10,7 +10,8 @@ actions:
     kind: github/pullrequest
     title: 'deps: Bump Golang version to {{ source "golangfullversion" }}'
     spec:
-      automerge: true
+      merge:
+        strategy: auto
       labels:
         - chore
         - skip-changelog

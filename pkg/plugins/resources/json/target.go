@@ -51,34 +51,6 @@ func (j *Json) Target(_ context.Context, source string, scm scm.ScmHandler, dryR
 		var err error
 
 		switch j.engine {
-		case ENGINEDASEL_V1:
-			logrus.Debugf("Using engine %q", j.engine)
-			switch len(j.spec.Query) > 0 {
-			case true:
-				queryResults, err = j.contents[i].MultipleQuery(j.spec.Query)
-
-				if err != nil {
-					return fmt.Errorf("querying json file %q: %w", filename, err)
-				}
-
-			case false:
-				queryResult, err := j.contents[i].Query(j.spec.Key)
-
-				if err != nil {
-					return fmt.Errorf("querying json file %q: %w", filename, err)
-				}
-
-				queryResults = append(queryResults, queryResult)
-
-			}
-
-		case ENGINEDASEL_V2:
-			logrus.Debugf("Using engine %q", ENGINEDASEL_V2)
-			queryResults, err = j.contents[i].QueryV2(j.spec.Key)
-			if err != nil {
-				return fmt.Errorf("querying file %q: %w", j.contents[i].FilePath, err)
-			}
-
 		case ENGINEDASEL_V3:
 			logrus.Debugf("Using engine %q", ENGINEDASEL_V3)
 			queryResults, err = j.contents[i].QueryV3(j.spec.Key)
@@ -132,41 +104,14 @@ func (j *Json) Target(_ context.Context, source string, scm scm.ScmHandler, dryR
 			continue
 		}
 
-		// Update the target file with the new value.
-		// The dasel v3 engine operates on the native parsed data and requires its
-		// own put/write path; v1 and v2 both write through the shared v1 node.
-		switch j.engine {
-		case ENGINEDASEL_V3:
-			if err = j.contents[i].PutV3(j.spec.Key, j.spec.Value); err != nil {
-				return fmt.Errorf("updating json file %q: %w", filename, err)
-			}
-
-			if err = j.contents[i].WriteV3(); err != nil {
-				return fmt.Errorf("writing json file %q: %w", filename, err)
-			}
-
-		default:
-			switch len(j.spec.Query) > 0 {
-			case true:
-				err = j.contents[i].PutMultiple(j.spec.Query, j.spec.Value)
-
-				if err != nil {
-					return fmt.Errorf("updating json file %q: %w", filename, err)
-				}
-
-			case false:
-				err = j.contents[i].Put(j.spec.Key, j.spec.Value)
-
-				if err != nil {
-					return fmt.Errorf("updating json file %q: %w", filename, err)
-				}
-			}
-
-			err = j.contents[i].Write()
-			if err != nil {
-				return fmt.Errorf("writing json file %q: %w", filename, err)
-			}
+		if err = j.contents[i].PutV3(j.spec.Key, j.spec.Value); err != nil {
+			return fmt.Errorf("updating json file %q: %w", filename, err)
 		}
+
+		if err = j.contents[i].WriteV3(); err != nil {
+			return fmt.Errorf("writing json file %q: %w", filename, err)
+		}
+
 	}
 
 	if len(modifiedDescriptions) == 0 && len(unModifiedDescriptions) > 0 {
