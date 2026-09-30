@@ -76,7 +76,7 @@ func TestRunCleanActions(t *testing.T) {
 			}
 			p.Options.Target.DryRun = tt.dryRun
 
-			gotErr := p.RunCleanActions(context.Background())
+			gotErr := p.RunCleanActions(context.Background(), map[string]bool{})
 
 			require.NoError(t, gotErr)
 			assert.Equal(t, tt.expectedCleanCounter, handler.cleanCounter)
