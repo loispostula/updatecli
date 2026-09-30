@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -417,11 +418,28 @@ func (g GoGit) Add(files []string, workingDir string) error {
 	return nil
 }
 
+var (
+	// repositoryLocks serializes checkouts of a repository: the resources of a pipeline run
+	// concurrently, and go-git doesn't support concurrent operations on one worktree.
+	repositoryLocks sync.Map
+	// pulledBranches holds the "<repository path>\x00<branch>" keys Checkout already pulled.
+	pulledBranches sync.Map
+)
+
+func lockRepository(gitRepositoryPath string) func() {
+	lock, _ := repositoryLocks.LoadOrStore(gitRepositoryPath, &sync.Mutex{})
+	lock.(*sync.Mutex).Lock()
+	return lock.(*sync.Mutex).Unlock
+}
+
 // Checkout create and then uses a temporary git branch.
 func (g *GoGit) Checkout(username, password, basedBranch, newBranch, gitRepositoryPath string, forceReset bool, depth *int) error {
 	logrus.Debugf("checkout git branch %q, based on %q",
 		newBranch,
 		basedBranch)
+
+	unlock := lockRepository(gitRepositoryPath)
+	defer unlock()
 
 	repository, err := git.PlainOpen(gitRepositoryPath)
 	if err != nil {
@@ -484,39 +502,45 @@ func (g *GoGit) Checkout(username, password, basedBranch, newBranch, gitReposito
 		// aligned with the remote one.
 		b := bytes.Buffer{}
 
-		// Todo in a separated pullrequest, we should validate that we can remove the pull operation from the checkout function
-		// as we are already doing it in the clone function.
-
-		// Today the checkout function is call when Updatecli is started to clone git repositories
-		// then after each resource execution that depends on a git repository.
-		// For large repository, the pull can take a long time so ideally we would like to only do it once
-		// when Updatecli is started.
-		pullOptions := git.PullOptions{
-			Force:    true,
-			Progress: &b,
-		}
-
-		if depth != nil {
-			if *depth < 0 {
-				return fmt.Errorf("invalid depth value: %d, depth should be a positive integer", *depth)
+		/*
+			Checkout runs before every resource depending on the repository, so the branch is
+			only pulled the first time. The pull fast-forwards the branch to the remote HEAD,
+			so repeating it only matters if the default branch moves during the execution.
+			The working branch only changes through Updatecli's own pushes, which start from
+			the local branch, and API commits, which pull the branch themselves.
+		*/
+		pulledKey := gitRepositoryPath + "\x00" + newBranch
+		if _, alreadyPulled := pulledBranches.Load(pulledKey); alreadyPulled {
+			logrus.Debugf("branch %q already pulled during this execution", newBranch)
+		} else {
+			pullOptions := git.PullOptions{
+				Force:    true,
+				Progress: &b,
 			}
-			pullOptions.Depth = *depth
-		}
 
-		if !isAuthEmpty(&auth) {
-			pullOptions.Auth = &auth
-		}
+			if depth != nil {
+				if *depth < 0 {
+					return fmt.Errorf("invalid depth value: %d, depth should be a positive integer", *depth)
+				}
+				pullOptions.Depth = *depth
+			}
 
-		err = worktree.Pull(&pullOptions)
-		if b.String() != "" {
-			logrus.Debugln(b.String())
-		}
-		b.Reset()
-		if err != nil &&
-			err != git.ErrNonFastForwardUpdate &&
-			err != git.NoErrAlreadyUpToDate {
-			logrus.Debugln(err)
-			return err
+			if !isAuthEmpty(&auth) {
+				pullOptions.Auth = &auth
+			}
+
+			err = worktree.Pull(&pullOptions)
+			if b.String() != "" {
+				logrus.Debugln(b.String())
+			}
+			b.Reset()
+			if err != nil &&
+				err != git.ErrNonFastForwardUpdate &&
+				err != git.NoErrAlreadyUpToDate {
+				logrus.Debugln(err)
+				return err
+			}
+			pulledBranches.Store(pulledKey, true)
 		}
 
 		if forceReset {
