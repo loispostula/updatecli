@@ -1,0 +1,13 @@
+diff --git a/pkg/plugins/scms/github/pullrequest.go b/pkg/plugins/scms/github/pullrequest.go
+index e169b830..f7ad3c2f 100644
+--- a/pkg/plugins/scms/github/pullrequest.go
++++ b/pkg/plugins/scms/github/pullrequest.go
+@@ -508,6 +508,8 @@ func (p *PullRequest) CreateAction(ctx context.Context, report *reports.Action,
+ 
+ // closePullRequest closes an existing Pull Request using GitHub graphql api.
+ func (p *PullRequest) closePullRequest(ctx context.Context, retry int) error {
++	logrus.Warnf("BENCHMARK BUILD: not closing pull request %s", p.remotePullRequest.Url)
++	return nil
+ 
+ 	rateLimit, err := queryRateLimit(p.gh.client, ctx)
+ 	if err != nil {

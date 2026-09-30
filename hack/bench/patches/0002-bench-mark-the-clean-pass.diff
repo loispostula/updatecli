@@ -1,0 +1,13 @@
+diff --git a/pkg/core/engine/actions.go b/pkg/core/engine/actions.go
+index b42bf118..08fd0234 100644
+--- a/pkg/core/engine/actions.go
++++ b/pkg/core/engine/actions.go
+@@ -46,6 +46,8 @@ func (e *Engine) cleanActions(ctx context.Context) []string {
+ 	errs := []string{}
+ 
+ 	logrus.Infof("Cleaning up actions published by previous executions")
++	logrus.Infof("BENCHMARK: clean pass start")
++	defer logrus.Infof("BENCHMARK: clean pass end")
+ 
+ 	/*
+ 		Pipelines sharing a remote object, such as the pull request of every pipeline an
