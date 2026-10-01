@@ -24,6 +24,10 @@ func (gb *GitBranch) Condition(_ context.Context, source string, scm scm.ScmHand
 			scm.GetURL())
 	}
 
+	if gb.lsRemote {
+		return gb.remoteBranchCondition(source)
+	}
+
 	if gb.spec.URL != "" {
 		gb.directory, err = gb.clone()
 		if err != nil {

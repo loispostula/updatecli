@@ -135,6 +135,23 @@ type Spec struct {
 	//   * key: hash
 	//
 	Key string `yaml:",omitempty"`
+	// "lsremote" lists the remote branches without cloning the repository.
+	//
+	// compatible:
+	//   * source
+	//   * condition
+	//
+	// default:
+	//   false
+	//
+	// remark:
+	//   * "lsremote" requires "url".
+	//   * "lsremote" cannot be used with "path" or "age".
+	//   * branches are sorted alphabetically, like `git ls-remote --heads`.
+	//     The default version filter "latest" then returns the last branch in alphabetical order,
+	//     so another version filter such as semver may be needed to get the expected branch.
+	//
+	LsRemote *bool `yaml:",omitempty"`
 }
 
 // GitBranch defines a resource of kind "gitbranch"
@@ -150,6 +167,8 @@ type GitBranch struct {
 	branch string
 	// directory defines the local path where the git repository is cloned.
 	directory string
+	// lsRemote indicates that the resource should only consider remote branches.
+	lsRemote bool
 }
 
 // New returns a reference to a newly initialized GitBranch object from a Spec
@@ -172,6 +191,19 @@ func New(spec interface{}) (*GitBranch, error) {
 		validationErrors = append(validationErrors, err.Error())
 	}
 
+	lsRemote := newSpec.LsRemote != nil && *newSpec.LsRemote
+	if lsRemote {
+		if newSpec.Path != "" {
+			validationErrors = append(validationErrors, "The parameter `path` cannot be used when `lsremote` is set to true, as `lsremote` retrieves branches from the remote repository without cloning it.")
+		}
+		if newSpec.URL == "" {
+			validationErrors = append(validationErrors, "The parameter `url` is required when `lsremote` is set to true, as it needs a git repository URL to retrieve branches without cloning it.")
+		}
+		if !newSpec.Age.IsZero() {
+			validationErrors = append(validationErrors, "The parameter `age` cannot be used when `lsremote` is set to true, as `lsremote` doesn't report the date of a branch.")
+		}
+	}
+
 	// Return all the validation errors if found any
 	if len(validationErrors) > 0 {
 		return &GitBranch{}, fmt.Errorf("validation error: the provided manifest configuration has the following validation errors:\n%s", strings.Join(validationErrors, "\n\n"))
@@ -186,6 +218,7 @@ func New(spec interface{}) (*GitBranch, error) {
 		spec:             newSpec,
 		versionFilter:    newFilter,
 		nativeGitHandler: &gitgeneric.GoGit{},
+		lsRemote:         lsRemote,
 	}
 
 	return newResource, nil
