@@ -1,4 +1,9 @@
 
 rules:
+    # go.yaml only builds snapshots and publishes nothing; release.yaml, which publishes,
+    # keeps the cache disabled. A pull request's cache is never restored on main.
+    cache-poisoning:
+        ignore:
+            - go.yaml
     secrets-outside-env:
         disable: true
